@@ -75,6 +75,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Linq.Dynamic.Core, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Linq.Dynamic.Core.1.0.5.4\lib\net45\System.Linq.Dynamic.Core.dll</HintPath>
@@ -88,6 +89,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CustomProvider\JoinExpression.cs" />
+    <Compile Include="DatabaseExtractor.cs" />
     <Compile Include="DynamicDemo\DynamicClassFactory.cs" />
     <Compile Include="DynamicDemo\DynamicDbContext.cs" />
     <Compile Include="DynamicDemo\DynamicEntity.cs" />
