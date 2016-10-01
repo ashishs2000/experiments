@@ -13,11 +13,13 @@ namespace Algorithms
         public void Extract()
         {
             var tables = new TableQuery();
-            var relations = new TableRelationshipQuery(tables);
-            var graph = new Graph();
-            graph.Add(relations);
+            var relations = new TableRelationshipQuery();
+            var graph = new Graph(tables,relations);
+            graph.Generate();
         }
     }
+
+    #region Models And Query
 
     public static class DatabaseReader
     {
@@ -40,7 +42,6 @@ namespace Algorithms
 
     public class TableRelationshipQuery
     {
-        private readonly TableQuery _tables;
         private const string TABLE_QUERY = @"SELECT
                                             PK_Table = PK.TABLE_SCHEMA + '.' + PK.TABLE_NAME,
                                             PK_Column = PT.COLUMN_NAME,
@@ -59,10 +60,9 @@ namespace Algorithms
                                             WHERE FK.Table_NAME like '%Evaluation%'
                                             ORDER BY 3,1";
 
-        public List<TableRelationship> Relationships { get; private set; }
-        public TableRelationshipQuery(TableQuery tables)
+        public List<TableRelationship> Relationships { get; }
+        public TableRelationshipQuery()
         {
-            _tables = tables;
             Relationships = new List<TableRelationship>();
             DatabaseReader.Execute(TABLE_QUERY, AddTableInfo);
         }
@@ -71,12 +71,19 @@ namespace Algorithms
         {
             var relation = new TableRelationship
             {
-                PrimaryTable = _tables.GetTable(reader.GetString(0)),
+                PrimaryTable = reader.GetString(0),
                 PrimaryKey = reader.GetString(1),
-                ForeignTable = _tables.GetTable(reader.GetString(2)),
+                ForeignTable = reader.GetString(2),
                 ForeignKey = reader.GetString(3)
             };
             Relationships.Add(relation);
+        }
+
+        public TableRelationship GetRelation(string primaryTable, string foerignTable)
+        {
+            return Relationships
+                .FirstOrDefault(p => p.PrimaryTable.Equals(primaryTable, StringComparison.OrdinalIgnoreCase)
+                                     && p.ForeignTable.Equals(foerignTable, StringComparison.OrdinalIgnoreCase));
         }
     }
 
@@ -139,10 +146,9 @@ namespace Algorithms
     public class TableRelationship
     {
         public string PrimaryKey { get; set; }
-        public Table PrimaryTable { get; set; }
-
+        public string PrimaryTable { get; set; }
         public string ForeignKey { get; set; }
-        public Table ForeignTable { get; set; }
+        public string ForeignTable { get; set; }
 
         public override string ToString()
         {
@@ -150,34 +156,91 @@ namespace Algorithms
         }
     }
 
-    public class Graph
+
+    #endregion
+
+    #region Helpers
+
+    public class Compare : IEqualityComparer<string>
     {
-        private readonly Dictionary<string,Tree> _trees = new Dictionary<string, Tree>();
-        public void Add(TableRelationshipQuery query)
+        public bool Equals(string x, string y)
+        {
+            return x.Equals(y, StringComparison.CurrentCultureIgnoreCase);
+        }
+
+        public int GetHashCode(string obj)
+        {
+            return 0;
+        }
+    }
+
+    #endregion
+
+
+    public class Database
+    {
+        private readonly Dictionary<string, Tree> _trees = new Dictionary<string, Tree>();
+        private readonly TableQuery _tables;
+        private readonly TableRelationshipQuery _relations;
+
+        public Dictionary<string, Tree> TreeRelations => _trees;
+        public Database(TableQuery tables, TableRelationshipQuery relations)
+        {
+            this._tables = tables;
+            this._relations = relations;
+
+            foreach (var table in _tables.Tables)
+                _trees.Add(table.Value.Name, new Tree(table.Value));
+        }
+
+        public void LoadRelations()
+        {
+            foreach (var relationship in _relations.Relationships)
+            {
+                var tree = _trees[relationship.ForeignTable.ToLower()];
+                LoadRelation(tree, _relations);
+            }
+        }
+
+        private void LoadRelation(Tree root, TableRelationshipQuery query)
         {
             foreach (var relationship in query.Relationships)
             {
-                if (!_trees.ContainsKey(relationship.ForeignTable.Name))
-                    _trees.Add(relationship.ForeignTable.Name, new Tree(relationship.ForeignTable));
+                if (!relationship.ForeignTable.Equals(root.Node.Table.Name, StringComparison.OrdinalIgnoreCase))
+                    continue;
 
-                var tree = _trees[relationship.ForeignTable.Name];
+                var tree = root.AddNode(_tables.GetTable(relationship.PrimaryTable), relationship.ForeignKey);
+                if (tree == null)
+                    continue;
+
                 LoadRelation(tree, query);
-                //AddToRelation(relationship.PrimaryTable, relationship.PrimaryKey);
-                //AddToRelation(relationship.ForeignTable, relationship.ForeignKey);
             }
+        }
+    }
 
-            //foreach (var tree in _trees)
-            //{
-            //    LoadRelation(tree.Value, query);
-            //}
+    public class Graph
+    {
+        private readonly TableQuery _tables;
+        private readonly TableRelationshipQuery _relations;
+
+        public Graph(TableQuery tables, TableRelationshipQuery relations)
+        {
+            this._tables = tables;
+            this._relations = relations;
+        }
+
+        public void Generate()
+        {
+            var database = new Database(_tables, _relations);
+            database.LoadRelations();
 
             var print = new StringBuilder();
-            foreach (var tree in _trees)
+            foreach (var tree in database.TreeRelations)
                 Print(1,tree.Value,print);
 
             var s = print.ToString();
 
-            var g = _trees["dbo.EvaluationRatingStepDetails".ToLower()];
+            var g = database.TreeRelations["dbo.EvaluationRatingStepDetails".ToLower()];
 
             var counter = 1;
             var builder = new StringBuilder();
@@ -210,12 +273,7 @@ namespace Algorithms
 
             return selects;
         }
-
-        private void Join(Tree tree, StringBuilder statement, WhereBuilder whereClause, ref int counter)
-        {
-            
-        }
-
+        
         private void AppendJoin(StringBuilder builder, Tree tree, WhereBuilder whereClause, ref int counter)
         {
             if(!tree.Childrens.Any())
@@ -247,31 +305,6 @@ namespace Algorithms
             }
             builder.AppendLine("--");
         }
-
-
-        private void AddToRelation(Table table)
-        {
-            if(!_trees.ContainsKey(table.Name))
-                _trees.Add(table.Name, new Tree(table));
-        }
-
-        private void LoadRelation(Tree root, TableRelationshipQuery query)
-        {
-            //if(root.Table.Name != "dbo.EvaluationRatingStepDetails".ToLower())
-            //    return;
-
-            foreach (var relationship in query.Relationships)
-            {
-                if (relationship.ForeignTable.Equals(root.Node.Table))
-                {
-                    var tree = root.AddNode(relationship.PrimaryTable, relationship.ForeignKey);
-                    if(tree == null)
-                        continue;
-
-                    LoadRelation(tree, query);
-                }
-            }
-        }
     }
 
     public class WhereBuilder
@@ -288,18 +321,7 @@ namespace Algorithms
         }
     }
 
-    public class Compare : IEqualityComparer<string>
-    {
-        public bool Equals(string x, string y)
-        {
-            return x.Equals(y, StringComparison.CurrentCultureIgnoreCase);
-        }
-
-        public int GetHashCode(string obj)
-        {
-            return 0;
-        }
-    }
+    
 
     public class Node : IEquatable<Node>
     {
