@@ -15,6 +15,7 @@ namespace Algorithms
             var tables = new TableQuery();
             var relations = new TableRelationshipQuery();
             var graph = new Graph(tables,relations);
+            graph.Clean();
             graph.Generate();
         }
     }
@@ -85,6 +86,18 @@ namespace Algorithms
                 .FirstOrDefault(p => p.PrimaryTable.Equals(primaryTable, StringComparison.OrdinalIgnoreCase)
                                      && p.ForeignTable.Equals(foerignTable, StringComparison.OrdinalIgnoreCase));
         }
+
+        public IEnumerable<TableRelationship> GetParentTables(string foreignTable)
+        {
+            return Relationships
+                .Where(p => p.ForeignTable.Equals(foreignTable, StringComparison.OrdinalIgnoreCase));
+        }
+
+        public IEnumerable<TableRelationship> GetForeignTables(string primaryTable)
+        {
+            return Relationships
+                .Where(p => p.PrimaryTable.Equals(primaryTable, StringComparison.OrdinalIgnoreCase));
+        }
     }
 
     public class TableQuery
@@ -108,14 +121,16 @@ namespace Algorithms
 
         private void AddTableInfo(SqlDataReader reader)
         {
-            var tableName = $"{reader.GetString(0)}.{reader.GetString(1)}".ToLower();
+            var schema = reader.GetString(0).ToLower();
+            var table = reader.GetString(1).ToLower();
+            var fullName = $"{schema}.{table}";
             var columnName = reader.GetString(2);
             var primaryKey = reader.GetString(3);
 
-            if (!Tables.ContainsKey(tableName))
-                Tables.Add(tableName, new Table(tableName, primaryKey));
+            if (!Tables.ContainsKey(fullName))
+                Tables.Add(fullName, new Table(schema, table, primaryKey));
 
-            Tables[tableName].Columns.Add(columnName);
+            Tables[fullName].Columns.Add(columnName);
         }
 
         public Table GetTable(string tableName)
@@ -126,20 +141,38 @@ namespace Algorithms
 
     public class Table
     {
+        public string FullName => $"{Schema}.{Name}";
+
+        public string Schema { get; set; }
         public string Name { get; set; }
         public string PrimaryKey { get; set; }
         public IList<string> Columns { get; set; }
+        public string Csv(string alias = null) => string.Join(",", string.IsNullOrEmpty(alias)
+            ? Columns
+            : Columns.Select(p => $"{alias}.{p}"));
 
-        public Table(string name, string primaryKey)
+        public Table(string schema,string name, string primaryKey)
         {
+            Schema = schema;
             Name = name;
             PrimaryKey = primaryKey;
             Columns = new List<string>();
         }
 
+        public TableRelationship FindAndGetRelationWithEmployer()
+        {
+            return Columns.Contains("userid", new IgnoreCaseComparer())
+                ? TableRelationship.WithUser(FullName)
+                : Columns.Contains("employeeid", new IgnoreCaseComparer())
+                    ? TableRelationship.WithEmployee(FullName)
+                    : null;
+        }
+
+        public bool HasEmployerId => Columns.Contains("employerid", new IgnoreCaseComparer());
+
         public override string ToString()
         {
-            return $"{Name}({PrimaryKey})";
+            return $"{FullName}({PrimaryKey})";
         }
     }
 
@@ -149,6 +182,36 @@ namespace Algorithms
         public string PrimaryTable { get; set; }
         public string ForeignKey { get; set; }
         public string ForeignTable { get; set; }
+
+        public static TableRelationship WithUser(string foreignTable, string foreignKey = "UserId")
+        {
+            return new TableRelationship
+            {
+                PrimaryKey = "UserId",
+                PrimaryTable = "dbo.EmployeePosition",
+                ForeignKey = foreignKey,
+                ForeignTable = foreignTable
+            };
+        }
+
+        public static TableRelationship WithEmployee(string foreignTable, string foreignKey = "EmployeeId")
+        {
+            return new TableRelationship
+            {
+                PrimaryKey = "EmployeeId",
+                PrimaryTable = "dbo.EmployeePosition",
+                ForeignKey = foreignKey,
+                ForeignTable = foreignTable
+            };
+        }
+
+        public void AddMissingRelation(IList<Table> tables)
+        {
+            foreach (var table in tables)
+            {
+                
+            }
+        }
 
         public override string ToString()
         {
@@ -161,7 +224,7 @@ namespace Algorithms
 
     #region Helpers
 
-    public class Compare : IEqualityComparer<string>
+    public class IgnoreCaseComparer : IEqualityComparer<string>
     {
         public bool Equals(string x, string y)
         {
@@ -184,36 +247,54 @@ namespace Algorithms
         private readonly TableRelationshipQuery _relations;
 
         public Dictionary<string, Tree> TreeRelations => _trees;
+
         public Database(TableQuery tables, TableRelationshipQuery relations)
         {
             this._tables = tables;
             this._relations = relations;
 
             foreach (var table in _tables.Tables)
-                _trees.Add(table.Value.Name, new Tree(table.Value));
+                _trees.Add(table.Value.FullName, new Tree(table.Value));
         }
 
         public void LoadRelations()
         {
-            foreach (var relationship in _relations.Relationships)
+            foreach (var tree in _trees.Values)
             {
-                var tree = _trees[relationship.ForeignTable.ToLower()];
-                LoadRelation(tree, _relations);
+                Load(tree);
+            }
+
+            //foreach (var relationship in _relations.Relationships)
+            //{
+            //    var tree = _trees[relationship.ForeignTable.ToLower()];
+            //    LoadRelation(tree);
+            //}
+        }
+
+        private void Load(Tree target)
+        {
+            var relations = _relations.GetParentTables(target.Table.FullName);
+            foreach (var relation in relations)
+            {
+                var rTable = _tables.GetTable(relation.PrimaryTable);
+                var rTree = target.AddNode(rTable, relation.ForeignKey);
+                if (rTree != null)
+                    Load(rTree);
             }
         }
 
-        private void LoadRelation(Tree root, TableRelationshipQuery query)
+        private void LoadRelation(Tree root)
         {
-            foreach (var relationship in query.Relationships)
+            foreach (var relationship in _relations.Relationships)
             {
-                if (!relationship.ForeignTable.Equals(root.Node.Table.Name, StringComparison.OrdinalIgnoreCase))
+                if (!relationship.ForeignTable.Equals(root.Table.FullName, StringComparison.OrdinalIgnoreCase))
                     continue;
 
                 var tree = root.AddNode(_tables.GetTable(relationship.PrimaryTable), relationship.ForeignKey);
                 if (tree == null)
                     continue;
 
-                LoadRelation(tree, query);
+                LoadRelation(tree);
             }
         }
     }
@@ -234,6 +315,9 @@ namespace Algorithms
             var database = new Database(_tables, _relations);
             database.LoadRelations();
 
+            var t  = new DatabaseTraversal();
+            t.Start(database);
+
             var print = new StringBuilder();
             foreach (var tree in database.TreeRelations)
                 Print(1,tree.Value,print);
@@ -241,56 +325,20 @@ namespace Algorithms
             var s = print.ToString();
 
             var g = database.TreeRelations["dbo.EvaluationRatingStepDetails".ToLower()];
-
-            var counter = 1;
-            var builder = new StringBuilder();
-            builder.AppendLine($"Select * FROM {g.Node.Table.Name} a{counter}");
-            var whereClause = new WhereBuilder();
-
-            AppendJoin(builder, g, whereClause, ref counter);
-            if(!string.IsNullOrEmpty(whereClause.Where))
-            builder.AppendLine($"WHERE {whereClause.Where}");
-            var x = builder.ToString();
         }
 
-        private List<string> CreateSelectStatement(List<Tree> trees)
+
+        public void Clean()
         {
-            var selects = new List<string>();
-            foreach (var tree in trees)
-                selects.AddRange(CreateSelectStatement(tree));
-            return selects;
-        }
-
-        private List<string> CreateSelectStatement(Tree tree)
-        {
-            var selects = new List<string>();
-
-            const int counter = 1;
-            var builder = new StringBuilder();
-            builder.AppendLine($"Select * FROM {tree.Node.Table.Name} a{counter}");
-            var whereClause = new WhereBuilder();
-
-
-            return selects;
-        }
-        
-        private void AppendJoin(StringBuilder builder, Tree tree, WhereBuilder whereClause, ref int counter)
-        {
-            if(!tree.Childrens.Any())
-                return;
-
-            foreach (var children in tree.Childrens)
+            foreach (var table in _tables.Tables.Values)
             {
-                var previousAlias = $"a{counter}";
-
-                counter++;
-                var nextAlias = $"a{counter}";
-                builder.AppendLine(
-                    $"JOIN {children.Node.Table.Name} {nextAlias} ON {nextAlias}.{children.Node.Table.PrimaryKey} = {previousAlias}.{children.ForeignKey}");
-
-                if (children.Node.Table.Columns.Contains("employerId", new Compare()))
-                    whereClause.Add($"{nextAlias}.EmployerId", "employers");
-                AppendJoin(builder, children, whereClause, ref counter);
+                var relation = table.FindAndGetRelationWithEmployer();
+                if (relation != null)
+                {
+                    var x = _relations.Relationships.Where(p => p.PrimaryTable.Equals(table.FullName));
+                    _relations.Relationships.RemoveAll(p => p.PrimaryTable.Equals(table.FullName));
+                    _relations.Relationships.Add(relation);
+                }
             }
         }
 
@@ -305,60 +353,108 @@ namespace Algorithms
             }
             builder.AppendLine("--");
         }
-    }
 
-    public class WhereBuilder
-    {
-        private StringBuilder builder = new StringBuilder();
-
-        public string Where => builder.ToString();
-        public void Add(string column, string parameterName)
-        {
-            if (builder.Length > 0)
-                builder.AppendLine(" AND ");
-
-            builder.Append($"{column} = @{parameterName}");
-        }
-    }
-
-    
-
-    public class Node : IEquatable<Node>
-    {
-        public Table Table { get; private set; }
-        public Node(Table table)
-        {
-            Table = table;
-        }
         
-        public bool Equals(Node other)
+    }
+
+    public class DatabaseTraversal
+    {
+        private readonly StringBuilder _builder = new StringBuilder();
+        private int _counter = 1;
+        private int NextCounter => _counter = _counter + 1;
+        private readonly Func<string, string, string> _insert = (table,columns) => $@"INSERT INTO  db.{table} ({columns})";
+
+        public IList<string> CopyAsIsItTables { get; set; }
+
+        public void Start(Database database)
         {
-            return Table.Name == other.Table.Name;
+            foreach (var primaryTree in database.TreeRelations.Values)
+            {
+                var b = new StringBuilder();
+
+                var pAlias = $"a{NextCounter}";
+                b.AppendLine(_insert(primaryTree.Table.FullName, primaryTree.Table.Csv()));
+                b.AppendLine($"SELECT {primaryTree.Table.Csv(pAlias)}");
+                b.AppendLine($"FROM {primaryTree.Table.FullName} {pAlias}");
+                Traverse(primaryTree, b);
+
+                _builder.AppendLine(b.ToString());
+                _counter = 1;
+            }
+            var x = _builder.ToString();
         }
 
-        public override string ToString()
+        private void Traverse(Tree tree, StringBuilder rootQuery)
         {
-            return $"{Table}";
+            var pAlias = $"a{_counter}";
+            if (tree.Table.HasEmployerId)
+            {
+                rootQuery.AppendLine($" {JoinEmployers(pAlias)}");
+                return;
+            }
+
+            foreach (var children in tree.Childrens)
+            {
+                var cAlias = $"a{NextCounter}";
+                var sql = $" INNER JOIN {children.Table.FullName} {cAlias}";
+                sql = $"{sql} ON {pAlias}.{children.ForeignKey} = {cAlias}.{children.Table.PrimaryKey}\n";
+
+                if (children.Table.HasEmployerId)
+                {
+                    sql = sql + " " + JoinEmployers(cAlias);
+                    rootQuery.AppendLine(sql);
+                    return;
+                }
+                else
+                {
+                    rootQuery.AppendLine(sql);
+                    Traverse(children, rootQuery);
+                }
+            }
+        }
+
+        private string JoinEmployers(string alias, string joinColumn = "employerId")
+        {
+            return $" INNER JOIN @EmployerIds eids ON eids.EmployerId = {alias}.{joinColumn}";
         }
     }
+
+    //public class Node : IEquatable<Node>
+    //{
+    //    public Table Table { get; private set; }
+    //    public Node(Table table)
+    //    {
+    //        Table = table;
+    //    }
+        
+    //    public bool Equals(Node other)
+    //    {
+    //        return Table.Name == other.Table.Name;
+    //    }
+
+    //    public override string ToString()
+    //    {
+    //        return $"{Table}";
+    //    }
+    //}
 
     public class Tree
     {
-        public Node Node { get; set; }
+        public Table Table { get; set; }
         public string ForeignKey { get; set; }
         public IList<Tree> Childrens { get; set; }
 
         public Tree(Table table)
         {
-            var root = new Node(table);
-            this.Node = root;
+            var root = table;
+            this.Table = root;
             Childrens = new List<Tree>();
         }
 
         public Tree AddNode(Table table, string foreignKey)
         {
             var tree = new Tree(table);
-            if(IsNodeExists(Node, tree.Node))
+            if(IsNodeExists(Table, tree.Table))
                 return null;
 
             tree.ForeignKey = foreignKey;
@@ -366,14 +462,14 @@ namespace Algorithms
             return tree;
         }
 
-        private bool IsNodeExists(Node root, Node node)
+        private bool IsNodeExists(Table root, Table node)
         {
             if (root.Equals(node))
                 return true;
 
             foreach (var children in Childrens)
             {
-                if (children.Node != null && IsNodeExists(node,children.Node))
+                if (children.Table != null && IsNodeExists(node,children.Table))
                     return true;
             }
             return false;
@@ -381,7 +477,7 @@ namespace Algorithms
 
         public override string ToString()
         {
-            return string.IsNullOrEmpty(ForeignKey) ? $"{Node}"  : $"{Node} <<FK - {ForeignKey}>>";
+            return string.IsNullOrEmpty(ForeignKey) ? $"{Table}"  : $"{Table} <<FK - {ForeignKey}>>";
         }
     }
 }

@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MvcApplication1", "MvcAppli
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConfigCompare", "ConfigCompare\ConfigCompare.csproj", "{2C37626A-7D65-4AB3-BD9D-36B03AD8F7F1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlDb.Baseline", "SqlDb.Baseline\SqlDb.Baseline.csproj", "{93C8AC8E-4330-4DE0-ABFA-7B0DB7CB9C71}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{2C37626A-7D65-4AB3-BD9D-36B03AD8F7F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2C37626A-7D65-4AB3-BD9D-36B03AD8F7F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2C37626A-7D65-4AB3-BD9D-36B03AD8F7F1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{93C8AC8E-4330-4DE0-ABFA-7B0DB7CB9C71}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{93C8AC8E-4330-4DE0-ABFA-7B0DB7CB9C71}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{93C8AC8E-4330-4DE0-ABFA-7B0DB7CB9C71}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{93C8AC8E-4330-4DE0-ABFA-7B0DB7CB9C71}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
