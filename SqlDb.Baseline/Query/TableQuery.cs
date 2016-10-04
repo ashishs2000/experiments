@@ -17,7 +17,7 @@ namespace SqlDb.Baseline.Query
                                             ) PT ON col.TABLE_NAME = PT.TABLE_NAME AND col.TABLE_SCHEMA = PT.TABLE_SCHEMA
                                             ORDER BY col.TABLE_NAME, ORDINAL_POSITION";
 
-        public Dictionary<string, Table> Tables { get; private set; }
+        public Dictionary<string, Table> Tables { get; }
         public TableQuery()
         {
             Tables = new Dictionary<string, Table>();
@@ -36,6 +36,11 @@ namespace SqlDb.Baseline.Query
                 Tables.Add(fullName, new Table(schema, table, primaryKey));
 
             Tables[fullName].Columns.Add(columnName);
+        }
+
+        public bool IsTableExists(string tableName)
+        {
+            return Tables.ContainsKey(tableName.ToLower());
         }
 
         public Table GetTable(string tableName)

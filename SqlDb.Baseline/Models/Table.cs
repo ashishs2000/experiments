@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using SqlDb.Baseline.Helpers;
 
 namespace SqlDb.Baseline.Models
@@ -34,6 +36,22 @@ namespace SqlDb.Baseline.Models
         }
 
         public bool HasEmployerId => Columns.Contains("employerid", new IgnoreCaseComparer());
+        public bool IsTableName(string tableName) => FullName.Equals(tableName, StringComparison.CurrentCultureIgnoreCase);
+        public bool HasColumn(string columnName) => Columns.Contains(columnName, new IgnoreCaseComparer());
+
+        private bool? _canAssociateToEmployer;
+        public bool CanBeAssociatedToEmployer
+        {
+            get
+            {
+                if (_canAssociateToEmployer.HasValue)
+                    return _canAssociateToEmployer.Value;
+
+                _canAssociateToEmployer =
+                    Columns.Any(column => Regex.IsMatch(column, ".*(employeeid|userid|employerid).*", RegexOptions.IgnoreCase));
+                return _canAssociateToEmployer.Value;
+            }
+        }
 
         public override string ToString()
         {

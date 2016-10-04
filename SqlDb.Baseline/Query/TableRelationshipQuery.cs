@@ -34,6 +34,22 @@ namespace SqlDb.Baseline.Query
             DatabaseReader.Execute(TABLE_QUERY, AddTableInfo);
         }
 
+        public void AddNewRelation(string primaryTable, string primaryKey, string foreignTable, string foreignKey)
+        {
+            if (Relationships.Any(p => p.PrimaryTable.Equals(primaryTable, StringComparison.CurrentCultureIgnoreCase)
+                                       && p.ForeignTable.Equals(foreignTable, StringComparison.InvariantCultureIgnoreCase)))
+                return;
+
+            var relation = new TableRelationship
+            {
+                PrimaryTable = primaryTable,
+                PrimaryKey = primaryKey,
+                ForeignTable = foreignTable,
+                ForeignKey = foreignKey
+            };
+            Relationships.Add(relation);
+        }
+
         private void AddTableInfo(SqlDataReader reader)
         {
             var relation = new TableRelationship
