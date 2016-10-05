@@ -18,7 +18,7 @@ namespace SqlDb.Baseline
         public Dictionary<string, Tree> TreeRelations => _trees;
         public IEnumerable<LinearTableView> TableLinks => _links;
         public TableQuery Tables => _tables;
-        public int TablesCount => _tables.Tables.Values.Count;
+        public int TablesCount => _tables.OnlyTables.Values.Count();
 
         public DatabaseParser(TableQuery tables, TableRelationshipQuery relations, IApplicationSetting appSetting, DatabaseElementConfiguration dbSettings)
         {
@@ -27,7 +27,7 @@ namespace SqlDb.Baseline
             _appSetting = appSetting;
             _dbSettings = dbSettings;
 
-            foreach (var table in _tables.Tables)
+            foreach (var table in _tables.OnlyTables)
                 _trees.Add(table.Value.FullName, new Tree(table.Value));
         }
 
@@ -88,10 +88,10 @@ namespace SqlDb.Baseline
 
             foreach (var mapper in _dbSettings.TableToEmployerMappers)
             {
-                if (!_tables.IsTableExists(mapper.Table))
+                if (!_tables.IsTableOrViewExists(mapper.Table))
                     continue;
 
-                foreach (var table in _tables.Tables.Values)
+                foreach (var table in _tables.OnlyTables.Values)
                 {
                     if (table.IsTableName(mapper.Table) || !table.HasColumn(mapper.Column))
                         continue;

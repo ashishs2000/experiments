@@ -9,6 +9,7 @@ namespace SqlDb.Baseline.Models
     public class DbTable
     {
         public string FullName => $"{Schema}.{Name}";
+        public virtual DbObjectType DbObjectType => DbObjectType.Table;
 
         public string Schema { get; set; }
         public string Name { get; set; }
@@ -48,5 +49,21 @@ namespace SqlDb.Baseline.Models
         {
             return $"{FullName}({PrimaryKey})";
         }
+    }
+
+    public class DbView : DbTable
+    {
+        public override DbObjectType DbObjectType => DbObjectType.View;
+        public DbView(string schema, string name) 
+            : base(schema, name, null)
+        {
+
+        }
+    }
+
+    public enum DbObjectType
+    {
+        Table,
+        View
     }
 }
