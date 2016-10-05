@@ -71,7 +71,8 @@ namespace SqlDb.Baseline.Configurations
                 {
                     case MappingType.Ignore:
                         foreach (TableToColumnMapElement setting in mapping.Settings)
-                            SkipTables.Add(setting.Table);
+                            if (!SkipTables.Contains(setting.Table))
+                                SkipTables.Add(setting.Table);
                         break;
                     case MappingType.Relation:
                         foreach (TableToColumnMapElement setting in mapping.Settings)
@@ -79,7 +80,8 @@ namespace SqlDb.Baseline.Configurations
                         break;
                     case MappingType.Lookup:
                         foreach (TableToColumnMapElement setting in mapping.Settings)
-                            LookupTables.Add(setting.Table);
+                            if(!LookupTables.Contains(setting.Table))
+                                LookupTables.Add(setting.Table);
                         break;
                 }
             }
