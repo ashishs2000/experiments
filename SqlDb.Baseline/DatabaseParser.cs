@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using SqlDb.Baseline.Configurations;
+using SqlDb.Baseline.Helpers;
 using SqlDb.Baseline.Models;
 using SqlDb.Baseline.Query;
 
@@ -19,6 +20,7 @@ namespace SqlDb.Baseline
         public IEnumerable<LinearTableView> TableLinks => _links;
         public TableQuery Tables => _tables;
         public int TablesCount => _tables.OnlyTables.Values.Count();
+        private FileWriter EventLogger => _dbSettings.EventLogger;
 
         public DatabaseParser(TableQuery tables, TableRelationshipQuery relations, IApplicationSetting appSetting, DatabaseElementConfiguration dbSettings)
         {
@@ -33,6 +35,12 @@ namespace SqlDb.Baseline
 
         public void LoadRelations()
         {
+            EventLogger.AddHeader("Extracted Information");
+            EventLogger.WriteLine($"    Total Tables : {_tables.OnlyTables.Count}");
+            EventLogger.WriteLine($"    Total Mapped Relations : {_relations.Relationships.Count}");
+            EventLogger.WriteLine($"    Total Custom Relations : {_dbSettings.TableToEmployerMappers.Count}");
+            EventLogger.NewLine();
+
             AppendRelationWhichCanLinkToEmployer();
 
             foreach (var tree in _trees.Values)
@@ -83,9 +91,11 @@ namespace SqlDb.Baseline
 
         private void AppendRelationWhichCanLinkToEmployer()
         {
-            var counter = 0;
-            _appSetting.Logger.WriteLine($"Total Custom Relations Found : {_dbSettings.TableToEmployerMappers.Count}");
+            PrintSqlRelationStats();
 
+            var counter = 0;
+            var foundRelation = false;
+            EventLogger.AddHeader("Following custom relationship are established");
             foreach (var mapper in _dbSettings.TableToEmployerMappers)
             {
                 if (!_tables.IsTableOrViewExists(mapper.Table))
@@ -97,10 +107,34 @@ namespace SqlDb.Baseline
                         continue;
 
                     counter++;
-                    _appSetting.Logger.WriteLine($"    {counter}. '{table.FullName}' and '{mapper.Table}'");
+                    EventLogger.WriteLine($"    {counter}. '{table.FullName}' and '{mapper.Table}'");
                     _relations.AddNewRelation(mapper.Table, mapper.Column, table.FullName, mapper.Column);
+                    foundRelation = true;
                 }
             }
+
+            if(!foundRelation)
+                EventLogger.WriteLine("     No relation found");
+            EventLogger.NewLine();
+        }
+
+        private void PrintSqlRelationStats()
+        {
+            EventLogger.AddHeader($"Following relationship exists in '{_dbSettings.Name}'");
+            if (_relations.Relationships.Any())
+            {
+                var counter = 0;
+                foreach (var relation in _relations.Relationships)
+                {
+                    counter++;
+                    EventLogger.WriteLine($"    {counter}. '{relation.PrimaryTable}' and '{relation.ForeignTable}'");
+                }
+            }
+            else
+            {
+                EventLogger.WriteLine("     No relationship exists.");
+            }
+            EventLogger.NewLine();
         }
 
         #endregion

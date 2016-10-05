@@ -8,8 +8,8 @@ namespace SqlDb.Baseline.Configurations
 {
     public interface IApplicationSetting
     {
-        FileWriter Logger { get; }
         Func<DbTable, string, string> TableTemplate { get; }
+        string OutputLocation { get; }
     }
 
     public class AppConfiguration : ConfigurationReader, IApplicationSetting
@@ -18,10 +18,6 @@ namespace SqlDb.Baseline.Configurations
 
         public AppConfiguration()
         {
-            _configSection = ProductsConfigurationSection.GetConfiguration();
-            Databases = _configSection.Databases.Select(p => p.Name).ToList();
-            Logger = new FileWriter(ReadOrDefaultProperty("LogFile", "baseline.log"));
-
             var template = ReadOrDefaultProperty("InsertTableTemplate", "");
             TableTemplate = (table, statement) =>
             {
@@ -29,12 +25,16 @@ namespace SqlDb.Baseline.Configurations
                 temp = temp.Replace("{statement}", statement);
                 return temp;
             };
+            OutputLocation = ReadOrDefaultProperty("OutputLocation", "Output");
+
+            _configSection = ProductsConfigurationSection.GetConfiguration(this);
+            Databases = _configSection.Databases.Select(p => p.Name).ToList();
         }
 
-        public FileWriter Logger { get; }
         public IList<string> Databases { get; }
         public DatabaseElementConfiguration GetDatabaseSetting(string database) => _configSection.Databases.FirstOrDefault(p => p.Name == database);
 
         public Func<DbTable, string, string> TableTemplate { get; }
+        public string OutputLocation { get; }
     }
 }

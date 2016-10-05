@@ -36,6 +36,11 @@ namespace SqlDb.Baseline.Helpers
             _logger.Write(data);
         }
 
+        public void NewLine()
+        {
+            _logger.WriteLine("");
+        }
+
         public void Dispose()
         {
             _logger.Dispose();

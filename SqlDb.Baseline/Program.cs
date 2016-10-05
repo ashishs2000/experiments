@@ -12,13 +12,21 @@ namespace SqlDb.Baseline
                 var configurations = new AppConfiguration();
                 foreach (var database in configurations.Databases)
                 {
+                    Console.Out.Write($"Creating migration scripts for {database}.......");
                     using (var runner = new DatabaseRunner(configurations, database))
                         runner.Execute();
+
+                    Console.Out.WriteLine("[OK]");
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.Out.WriteLine(ex.Message);
+            }
+            finally
+            {
+                Console.Out.WriteLine("Press any key to exit.");
+                Console.ReadKey();
             }
         }
     }

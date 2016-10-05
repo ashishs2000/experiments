@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Configuration;
+using System.IO;
 using System.Linq;
 using SqlDb.Baseline.Helpers;
 
@@ -7,11 +9,11 @@ namespace SqlDb.Baseline.Configurations
 {
     public class ProductsConfigurationSection : ConfigurationSection
     {
-        public static ProductsConfigurationSection GetConfiguration()
+        public static ProductsConfigurationSection GetConfiguration(IApplicationSetting applicationSetting)
         {
             var section = (ProductsConfigurationSection)ConfigurationManager.GetSection("migrationSection");
             foreach (var database in section.Databases)
-                database.ParseAndLoad();
+                database.ParseAndLoad(applicationSetting);
             return section;
         }
         
@@ -39,10 +41,14 @@ namespace SqlDb.Baseline.Configurations
         [ConfigurationProperty("output")]
         public string OutputFile => this["output"].ToString();
 
+        [ConfigurationProperty("log")]
+        public string LogFile => this["log"].ToString();
+
         [ConfigurationProperty("", IsDefaultCollection = true)]
         public MappingConfigurationCollection Mappings => (MappingConfigurationCollection)base[""];
 
         public FileWriter ScriptLogger { get; private set; }
+        public FileWriter EventLogger { get; private set; }
         public IList<TableColumn> TableToEmployerMappers { get; set; }
         public IList<string> LookupTables { get; set; }
         public IList<string> SkipTables { get; set; }
@@ -54,9 +60,11 @@ namespace SqlDb.Baseline.Configurations
             SkipTables = new List<string>();
         }
 
-        public void ParseAndLoad()
+        public void ParseAndLoad(IApplicationSetting applicationSetting)
         {
-            ScriptLogger = new FileWriter(OutputFile);
+            SetupFileStream(OutputFile, applicationSetting.OutputLocation, $"{Name}.sql", fileName => ScriptLogger = new FileWriter(fileName));
+            SetupFileStream(LogFile, applicationSetting.OutputLocation, $"{Name}.txt", fileName => EventLogger = new FileWriter(fileName));
+
             foreach (MappingElement mapping in Mappings)
             {
                 switch (mapping.Type)
@@ -75,6 +83,17 @@ namespace SqlDb.Baseline.Configurations
                         break;
                 }
             }
+        }
+
+        private void SetupFileStream(string fileName, string location, string defaultFileName, Action<string> streamAction)
+        {
+            if (string.IsNullOrEmpty(fileName))
+                fileName = defaultFileName;
+
+            if (!Directory.Exists(location))
+                Directory.CreateDirectory(location);
+
+            streamAction(Path.Combine(location, fileName));
         }
     }
 

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using SqlDb.Baseline.Configurations;
 using SqlDb.Baseline.Helpers;
 using SqlDb.Baseline.Models;
@@ -15,8 +16,10 @@ namespace SqlDb.Baseline
         private readonly DatabaseElementConfiguration _dbSettings;
         private readonly List<LinearTableView> _missing = new List<LinearTableView>();
         private readonly List<string> _tableCovered = new List<string>();
+        private readonly List<string> _tableSkipped = new List<string>(); 
 
         private FileWriter ScriptWriter => _dbSettings.ScriptLogger;
+        private FileWriter EventLogger => _dbSettings.EventLogger;
         public BaselineScriptGenerator(DatabaseParser databaseParser, IApplicationSetting appSettings, DatabaseElementConfiguration dbSettings)
         {
             _databaseParser = databaseParser;
@@ -33,6 +36,7 @@ namespace SqlDb.Baseline
             AppendLookupTableMigration();
             AppendTransactionTableMigration();
             LogMissingFile();
+            LogSkippedTables();
         }
 
         private void AppendLookupTableMigration()
@@ -80,21 +84,6 @@ namespace SqlDb.Baseline
                 tableCounter++;
             }
         }
-
-        private void LogMissingFile()
-        {
-            var counter = 1;
-            _appSettings.Logger.AddHeader($"Missing Table Migrations {_missing.Count}/{_databaseParser.TablesCount}");
-            foreach (var tableLink in _missing.OrderBy(p => p.PrimaryTable.Schema).ThenBy(p => p.PrimaryTable.Name))
-            {
-                if (ShouldSkipTable(tableLink.PrimaryTable.FullName))
-                    continue;
-
-                _appSettings.Logger.WriteLine($"   {counter}. {tableLink.PrimaryTable.FullName} - ({tableLink.PrimaryTable.Csv()})");
-                counter++;
-            }
-        }
-
 
         private string InjectQuery(int counter, DbTable table, string statement)
         {
@@ -160,13 +149,51 @@ namespace SqlDb.Baseline
 
         private bool ShouldSkipTable(string tablename)
         {
-            if (_dbSettings.SkipTables.Contains(tablename, new IgnoreCaseComparer()))
+            if (_dbSettings.SkipTables.Any(p => Regex.IsMatch(tablename, p, RegexOptions.IgnoreCase)))
+            {
+                _tableSkipped.Add(tablename);
                 return true;
+            }
 
             if (_tableCovered.Contains(tablename, new IgnoreCaseComparer()))
                 return true;
 
             return false;
+        }
+
+        private void LogMissingFile()
+        {
+            var counter = 1;
+            EventLogger.AddHeader($"Missing Table Migrations {_missing.Count}/{_databaseParser.TablesCount}");
+            if (!_missing.Any())
+            {
+                EventLogger.WriteLine("--   Perfect!!! All tables are accounted for migration");
+                return;
+            }
+
+            foreach (var tableLink in _missing.OrderBy(p => p.PrimaryTable.Schema).ThenBy(p => p.PrimaryTable.Name))
+            {
+                if (ShouldSkipTable(tableLink.PrimaryTable.FullName))
+                    continue;
+
+                EventLogger.WriteLine($"   {counter}. {tableLink.PrimaryTable.FullName} - ({tableLink.PrimaryTable.Csv()})");
+                counter++;
+            }
+            EventLogger.NewLine();
+        }
+
+        private void LogSkippedTables()
+        {
+            EventLogger.AddHeader("Skipped Tables");
+            if (!_missing.Any())
+            {
+                EventLogger.WriteLine("--   No Skip Tables");
+                return;
+            }
+
+            for (var i = 0; i < _tableSkipped.Count; i++)
+                EventLogger.WriteLine($"   {i+1}. {_tableSkipped[i]}");
+            EventLogger.NewLine();
         }
     }
 }
