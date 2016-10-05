@@ -2,38 +2,54 @@ using System.Collections.Generic;
 
 namespace SqlDb.Baseline.Models
 {
-    public class Tree
+    public class NodeRelation
     {
-        public Table Table { get; set; }
-        public string ForeignKey { get; set; }
-        public IList<Tree> Childrens { get; set; }
+        public string LeftKey { get; private set; }
+        public string RightKey { get; private set; }
+        public Tree RightTree { get; private set; }
 
-        public Tree(Table table)
+        public NodeRelation(string leftKey, string rightKey, Tree rightTree)
         {
-            var root = table;
-            this.Table = root;
-            Childrens = new List<Tree>();
+            LeftKey = leftKey;
+            RightKey = rightKey;
+            RightTree = rightTree;
         }
 
-        public Tree AddNode(Table table, string foreignKey)
+        public override string ToString()
         {
-            var tree = new Tree(table);
+            return $"[{LeftKey} = {RightKey}({RightTree.Table.FullName})]";
+        }
+    }
+    public class Tree
+    {
+        public DbTable Table { get; set; }
+        public IList<NodeRelation> Childrens { get; set; }
+
+        public Tree(DbTable table)
+        {
+            Table = table;
+            Childrens = new List<NodeRelation>();
+        }
+
+        public Tree AddRelation(string leftKey, DbTable rightTable, string rightKey)
+        {
+            var tree = new Tree(rightTable);
             if (IsNodeExists(Table, tree.Table))
                 return null;
 
-            tree.ForeignKey = foreignKey;
-            Childrens.Add(tree);
+            var relation = new NodeRelation(leftKey, rightKey, tree);
+            Childrens.Add(relation);
             return tree;
         }
 
-        private bool IsNodeExists(Table root, Table node)
+        private bool IsNodeExists(DbTable root, DbTable node)
         {
             if (root.Equals(node))
                 return true;
 
             foreach (var children in Childrens)
             {
-                if (children.Table != null && IsNodeExists(node, children.Table))
+                if (children.RightTree.Table != null && IsNodeExists(node, children.RightTree.Table))
                     return true;
             }
             return false;
@@ -41,7 +57,7 @@ namespace SqlDb.Baseline.Models
 
         public override string ToString()
         {
-            return string.IsNullOrEmpty(ForeignKey) ? $"{Table}" : $"{Table} <<FK - {ForeignKey}>>";
+            return Table.ToString();
         }
     }
 }

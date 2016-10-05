@@ -6,7 +6,7 @@ using SqlDb.Baseline.Helpers;
 
 namespace SqlDb.Baseline.Models
 {
-    public class Table
+    public class DbTable
     {
         public string FullName => $"{Schema}.{Name}";
 
@@ -18,7 +18,7 @@ namespace SqlDb.Baseline.Models
             ? Columns
             : Columns.Select(p => $"{alias}.{p}"));
 
-        public Table(string schema, string name, string primaryKey)
+        public DbTable(string schema, string name, string primaryKey)
         {
             Schema = schema;
             Name = name;
@@ -26,12 +26,12 @@ namespace SqlDb.Baseline.Models
             Columns = new List<string>();
         }
 
-        public TableRelationship FindAndGetRelationWithEmployer()
+        public DbTableRelationship CanBeLinkedToEmployer()
         {
             return Columns.Contains("userid", new IgnoreCaseComparer())
-                ? TableRelationship.WithUser(FullName)
+                ? DbTableRelationship.WithUser(FullName)
                 : Columns.Contains("employeeid", new IgnoreCaseComparer())
-                    ? TableRelationship.WithEmployee(FullName)
+                    ? DbTableRelationship.WithEmployee(FullName)
                     : null;
         }
 

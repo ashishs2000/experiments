@@ -27,11 +27,13 @@ namespace SqlDb.Baseline.Query
                                             WHERE FK.Table_NAME like '%Evaluation%'
                                             ORDER BY 3,1";
 
-        public List<TableRelationship> Relationships { get; }
-        public TableRelationshipQuery()
+        public List<DbTableRelationship> Relationships { get; }
+        public TableRelationshipQuery(ConfigurationSetting setting)
         {
-            Relationships = new List<TableRelationship>();
+            Relationships = new List<DbTableRelationship>();
             DatabaseReader.Execute(TABLE_QUERY, AddTableInfo);
+
+            setting.LogFileWriter.WriteLine($"Total Relationships Found : {Relationships.Count}");
         }
 
         public void AddNewRelation(string primaryTable, string primaryKey, string foreignTable, string foreignKey)
@@ -40,7 +42,7 @@ namespace SqlDb.Baseline.Query
                                        && p.ForeignTable.Equals(foreignTable, StringComparison.InvariantCultureIgnoreCase)))
                 return;
 
-            var relation = new TableRelationship
+            var relation = new DbTableRelationship
             {
                 PrimaryTable = primaryTable,
                 PrimaryKey = primaryKey,
@@ -52,7 +54,7 @@ namespace SqlDb.Baseline.Query
 
         private void AddTableInfo(SqlDataReader reader)
         {
-            var relation = new TableRelationship
+            var relation = new DbTableRelationship
             {
                 PrimaryTable = reader.GetString(0),
                 PrimaryKey = reader.GetString(1),
@@ -62,20 +64,20 @@ namespace SqlDb.Baseline.Query
             Relationships.Add(relation);
         }
 
-        public TableRelationship GetRelation(string primaryTable, string foerignTable)
+        public DbTableRelationship GetRelation(string primaryTable, string foerignTable)
         {
             return Relationships
                 .FirstOrDefault(p => p.PrimaryTable.Equals(primaryTable, StringComparison.OrdinalIgnoreCase)
                                      && p.ForeignTable.Equals(foerignTable, StringComparison.OrdinalIgnoreCase));
         }
 
-        public IEnumerable<TableRelationship> GetParentTables(string foreignTable)
+        public IEnumerable<DbTableRelationship> GetParentTables(string foreignTable)
         {
             return Relationships
                 .Where(p => p.ForeignTable.Equals(foreignTable, StringComparison.OrdinalIgnoreCase));
         }
 
-        public IEnumerable<TableRelationship> GetForeignTables(string primaryTable)
+        public IEnumerable<DbTableRelationship> GetForeignTables(string primaryTable)
         {
             return Relationships
                 .Where(p => p.PrimaryTable.Equals(primaryTable, StringComparison.OrdinalIgnoreCase));

@@ -44,21 +44,29 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BaselineScriptGenerator.cs" />
+    <Compile Include="Configurations\ProductsConfigurationSection.cs" />
+    <Compile Include="Helpers\ConfigurationSetting.cs" />
     <Compile Include="Helpers\DatabaseReader.cs" />
+    <Compile Include="Helpers\Extensions.cs" />
     <Compile Include="Helpers\IgnoreCaseComparer.cs" />
+    <Compile Include="Models\LinearTableView.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Query\TableQuery.cs" />
     <Compile Include="Query\TableRelationshipQuery.cs" />
-    <Compile Include="Models\Table.cs" />
-    <Compile Include="Models\TableRelationship.cs" />
+    <Compile Include="Models\DbTable.cs" />
+    <Compile Include="Models\DbTableRelationship.cs" />
     <Compile Include="Models\Tree.cs" />
+    <Compile Include="Models\TableJoinCondition.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="BeforeBaseline.sql" />
+    <Content Include="BeforeBaseline.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

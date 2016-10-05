@@ -17,11 +17,13 @@ namespace SqlDb.Baseline.Query
                                             ) PT ON col.TABLE_NAME = PT.TABLE_NAME AND col.TABLE_SCHEMA = PT.TABLE_SCHEMA
                                             ORDER BY col.TABLE_NAME, ORDINAL_POSITION";
 
-        public Dictionary<string, Table> Tables { get; }
-        public TableQuery()
+        public Dictionary<string, DbTable> Tables { get; }
+        public TableQuery(ConfigurationSetting setting)
         {
-            Tables = new Dictionary<string, Table>();
+            Tables = new Dictionary<string, DbTable>();
             DatabaseReader.Execute(TABLE_QUERY, AddTableInfo);
+
+            setting.LogFileWriter.WriteLine($"Total Tables Found: {Tables.Count}");
         }
 
         private void AddTableInfo(SqlDataReader reader)
@@ -33,7 +35,7 @@ namespace SqlDb.Baseline.Query
             var primaryKey = reader.GetString(3);
 
             if (!Tables.ContainsKey(fullName))
-                Tables.Add(fullName, new Table(schema, table, primaryKey));
+                Tables.Add(fullName, new DbTable(schema, table, primaryKey));
 
             Tables[fullName].Columns.Add(columnName);
         }
@@ -43,7 +45,7 @@ namespace SqlDb.Baseline.Query
             return Tables.ContainsKey(tableName.ToLower());
         }
 
-        public Table GetTable(string tableName)
+        public DbTable GetTable(string tableName)
         {
             return Tables[tableName.ToLower()];
         }
