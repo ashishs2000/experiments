@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data.SqlClient;
 using System.Linq;
+using SqlDb.Baseline.Configurations;
 using SqlDb.Baseline.Helpers;
 using SqlDb.Baseline.Models;
 
@@ -28,12 +30,13 @@ namespace SqlDb.Baseline.Query
                                             ORDER BY 3,1";
 
         public List<DbTableRelationship> Relationships { get; }
-        public TableRelationshipQuery(ConfigurationSetting setting)
+        public TableRelationshipQuery(DatabaseElementConfiguration configuration)
         {
-            Relationships = new List<DbTableRelationship>();
-            DatabaseReader.Execute(TABLE_QUERY, AddTableInfo);
+            var conString = ConfigurationManager.ConnectionStrings[configuration.Name].ConnectionString;
 
-            setting.LogFileWriter.WriteLine($"Total Relationships Found : {Relationships.Count}");
+            Relationships = new List<DbTableRelationship>();
+            var con = new SqlConnection(conString);
+            con.Execute(TABLE_QUERY, AddTableInfo);
         }
 
         public void AddNewRelation(string primaryTable, string primaryKey, string foreignTable, string foreignKey)

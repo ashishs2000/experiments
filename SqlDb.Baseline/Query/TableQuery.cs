@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
+using System.Configuration;
 using System.Data.SqlClient;
+using SqlDb.Baseline.Configurations;
 using SqlDb.Baseline.Helpers;
 using SqlDb.Baseline.Models;
 
@@ -18,12 +20,13 @@ namespace SqlDb.Baseline.Query
                                             ORDER BY col.TABLE_NAME, ORDINAL_POSITION";
 
         public Dictionary<string, DbTable> Tables { get; }
-        public TableQuery(ConfigurationSetting setting)
+        public TableQuery(DatabaseElementConfiguration configuration)
         {
-            Tables = new Dictionary<string, DbTable>();
-            DatabaseReader.Execute(TABLE_QUERY, AddTableInfo);
+            var conString = ConfigurationManager.ConnectionStrings[configuration.Name].ConnectionString;
 
-            setting.LogFileWriter.WriteLine($"Total Tables Found: {Tables.Count}");
+            Tables = new Dictionary<string, DbTable>();
+            var con = new SqlConnection(conString);
+            con.Execute(TABLE_QUERY,AddTableInfo);
         }
 
         private void AddTableInfo(SqlDataReader reader)

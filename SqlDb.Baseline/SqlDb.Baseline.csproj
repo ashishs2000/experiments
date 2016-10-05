@@ -45,9 +45,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BaselineScriptGenerator.cs" />
+    <Compile Include="Configurations\AppConfiguration.cs" />
+    <Compile Include="Configurations\ConfigurationReader.cs" />
+    <Compile Include="Configurations\MappingConfigurationCollection.cs" />
     <Compile Include="Configurations\ProductsConfigurationSection.cs" />
-    <Compile Include="Helpers\ConfigurationSetting.cs" />
-    <Compile Include="Helpers\DatabaseReader.cs" />
+    <Compile Include="Configurations\TableToColumnCollection.cs" />
+    <Compile Include="DatabaseParser.cs" />
+    <Compile Include="DatabaseRunner.cs" />
+    <Compile Include="Helpers\CaseInsensitiveEnumConfigConverter.cs" />
     <Compile Include="Helpers\Extensions.cs" />
     <Compile Include="Helpers\IgnoreCaseComparer.cs" />
     <Compile Include="Models\LinearTableView.cs" />

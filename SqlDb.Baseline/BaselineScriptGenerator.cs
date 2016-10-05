@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using SqlDb.Baseline.Configurations;
 using SqlDb.Baseline.Helpers;
 using SqlDb.Baseline.Models;
 
@@ -9,18 +10,18 @@ namespace SqlDb.Baseline
 {
     public class BaselineScriptGenerator
     {
-        private readonly Database _database;
-        private readonly ConfigurationSetting _setting;
+        private readonly DatabaseParser _databaseParser;
+        private readonly IApplicationSetting _appSettings;
+        private readonly DatabaseElementConfiguration _dbSettings;
         private readonly List<LinearTableView> _missing = new List<LinearTableView>();
         private readonly List<string> _tableCovered = new List<string>();
 
-        private FileWriter ScriptWriter => _setting.ScriptWriter;
-        private FileWriter LogWriter => _setting.LogFileWriter;
-
-        public BaselineScriptGenerator(Database database, ConfigurationSetting setting)
+        private FileWriter ScriptWriter => _dbSettings.ScriptLogger;
+        public BaselineScriptGenerator(DatabaseParser databaseParser, IApplicationSetting appSettings, DatabaseElementConfiguration dbSettings)
         {
-            _database = database;
-            _setting = setting;
+            _databaseParser = databaseParser;
+            _appSettings = appSettings;
+            _dbSettings = dbSettings;
         }
 
         public void Generate()
@@ -39,13 +40,13 @@ namespace SqlDb.Baseline
             var tableCounter = 1;
             ScriptWriter.AddHeader("Lookup Table Migrations");
 
-            foreach (var tableName in _setting.LookupTables)
+            foreach (var tableName in _dbSettings.LookupTables)
             {
                 if(ShouldSkipTable(tableName))
                     continue;
 
-                var table = _database.Tables.GetTable(tableName);
-                var statement = CreateInsert(table, _setting.TargetServer, "a");
+                var table = _databaseParser.Tables.GetTable(tableName);
+                var statement = CreateInsert(table, _dbSettings.TargetDatabase, "a");
                 statement = InjectQuery(tableCounter, table, statement);
 
                 ScriptWriter.WriteLine(statement);
@@ -60,7 +61,7 @@ namespace SqlDb.Baseline
             var tableCounter = 1;
             ScriptWriter.AddHeader("Transactional Table Migrations");
 
-            foreach (var tableLink in _database.TableLinks)
+            foreach (var tableLink in _databaseParser.TableLinks)
             {
                 if (ShouldSkipTable(tableLink.PrimaryTable.FullName))
                     continue;
@@ -83,13 +84,13 @@ namespace SqlDb.Baseline
         private void LogMissingFile()
         {
             var counter = 1;
-            LogWriter.AddHeader($"Missing Table Migrations {_missing.Count}/{_database.TablesCount}");
+            _appSettings.Logger.AddHeader($"Missing Table Migrations {_missing.Count}/{_databaseParser.TablesCount}");
             foreach (var tableLink in _missing.OrderBy(p => p.PrimaryTable.Schema).ThenBy(p => p.PrimaryTable.Name))
             {
                 if (ShouldSkipTable(tableLink.PrimaryTable.FullName))
                     continue;
 
-                LogWriter.WriteLine($"   {counter}. {tableLink.PrimaryTable.FullName} - ({tableLink.PrimaryTable.Csv()})");
+                _appSettings.Logger.WriteLine($"   {counter}. {tableLink.PrimaryTable.FullName} - ({tableLink.PrimaryTable.Csv()})");
                 counter++;
             }
         }
@@ -100,7 +101,7 @@ namespace SqlDb.Baseline
             var builder = new StringBuilder();
             builder.AppendLine($"-- ***** [{counter}] Migrating {table.FullName} ***** ");
             
-            builder.AppendLine(_setting.TableTemplate(table,statement));
+            builder.AppendLine(_appSettings.TableTemplate(table,statement));
 
             builder.AppendLine("".PadRight(50, '-'));
             builder.AppendLine("");
@@ -111,7 +112,7 @@ namespace SqlDb.Baseline
         {
             var pAlias = $"a{aliasCounter}";
             var queryBuilder = new StringBuilder();
-            queryBuilder.Append(CreateInsert(tableLink.PrimaryTable, _setting.TargetServer, pAlias));
+            queryBuilder.Append(CreateInsert(tableLink.PrimaryTable, _dbSettings.TargetDatabase, pAlias));
 
             JoinNextTable(tableLink, queryBuilder, aliasCounter);
             return queryBuilder.ToString();
@@ -159,7 +160,7 @@ namespace SqlDb.Baseline
 
         private bool ShouldSkipTable(string tablename)
         {
-            if (_setting.SkipTables.Contains(tablename, new IgnoreCaseComparer()))
+            if (_dbSettings.SkipTables.Contains(tablename, new IgnoreCaseComparer()))
                 return true;
 
             if (_tableCovered.Contains(tablename, new IgnoreCaseComparer()))
