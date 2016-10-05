@@ -91,7 +91,8 @@ namespace SqlDb.Baseline.Query
 
         public DbTable GetTable(string tableName)
         {
-            return AllObjects[tableName.ToLower()];
+            tableName = tableName.ToLower();
+            return AllObjects.ContainsKey(tableName) ? AllObjects[tableName] : null;
         }
     }
 }

@@ -50,6 +50,9 @@ namespace SqlDb.Baseline
                     continue;
 
                 var table = _databaseParser.Tables.GetTable(tableName);
+                if(table == null)
+                    continue;
+
                 var statement = CreateInsert(table, _dbSettings.TargetDatabase, "a");
                 statement = InjectQuery(tableCounter, table, statement);
 
