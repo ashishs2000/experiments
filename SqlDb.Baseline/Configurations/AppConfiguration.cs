@@ -21,21 +21,20 @@ namespace SqlDb.Baseline.Configurations
             _configSection = ProductsConfigurationSection.GetConfiguration();
             Databases = _configSection.Databases.Select(p => p.Name).ToList();
             Logger = new FileWriter(ReadOrDefaultProperty("LogFile", "baseline.log"));
+
+            var template = ReadOrDefaultProperty("InsertTableTemplate", "");
+            TableTemplate = (table, statement) =>
+            {
+                var temp = template.Replace("{tablename}", table.FullName);
+                temp = temp.Replace("{statement}", statement);
+                return temp;
+            };
         }
 
         public FileWriter Logger { get; }
         public IList<string> Databases { get; }
         public DatabaseElementConfiguration GetDatabaseSetting(string database) => _configSection.Databases.FirstOrDefault(p => p.Name == database);
 
-        public Func<DbTable, string, string> TableTemplate { get; } = (table, statement) => $@"
-IF NOT EXISTS (SELECT 1 FROM Migrations.Baseline WHERE TableName = '{table.FullName}')
-BEGIN
-	TRUNCATE TABLE {table.FullName}
-
-	{statement}
-	INSERT INTO Migrations.Baseline(TableName,IsCompleted)
-	SELECT '{table.FullName}',1
-END";
-
+        public Func<DbTable, string, string> TableTemplate { get; }
     }
 }
