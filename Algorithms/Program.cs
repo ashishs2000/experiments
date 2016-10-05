@@ -10,9 +10,6 @@ namespace Algorithms
         {
             try
             {
-                var db = new DatabaseExtractor();
-                db.Extract();
-
                 //DynamicMain.Instance.Run();
 
                 //var extension = new ExtensionFieldHandler();

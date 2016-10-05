@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data.SqlClient;
 
 namespace SqlDb.Baseline.Helpers
@@ -25,6 +26,12 @@ namespace SqlDb.Baseline.Helpers
             writer.WriteLine("".PadRight(50, '-'));
             writer.WriteLine($"-- {heading}");
             writer.WriteLine("".PadRight(50, '-'));
+        }
+
+        public static void ForEach<T>(this IEnumerable<T> items, Action<T> action)
+        {
+            foreach (var item in items)
+                action(item);
         }
     }
 }

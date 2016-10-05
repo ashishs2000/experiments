@@ -33,7 +33,6 @@ namespace SqlDb.Baseline
 
         public void LoadRelations()
         {
-            RemoveRelationIfNotLinkToEmployer();
             AppendRelationWhichCanLinkToEmployer();
 
             foreach (var tree in _trees.Values)
@@ -82,18 +81,6 @@ namespace SqlDb.Baseline
             }
         }
 
-        private void RemoveRelationIfNotLinkToEmployer()
-        {
-            foreach (var table in _tables.Tables.Values)
-            {
-                var relation = table.CanBeLinkedToEmployer();
-                if (relation == null)
-                    continue;
-                _relations.Relationships.RemoveAll(p => p.PrimaryTable.Equals(table.FullName));
-                _relations.Relationships.Add(relation);
-            }
-        }
-
         private void AppendRelationWhichCanLinkToEmployer()
         {
             var counter = 0;
@@ -101,17 +88,17 @@ namespace SqlDb.Baseline
 
             foreach (var mapper in _dbSettings.TableToEmployerMappers)
             {
-                if (!_tables.IsTableExists(mapper.Key))
+                if (!_tables.IsTableExists(mapper.Table))
                     continue;
 
                 foreach (var table in _tables.Tables.Values)
                 {
-                    if (table.IsTableName(mapper.Key) || !table.HasColumn(mapper.Value))
+                    if (table.IsTableName(mapper.Table) || !table.HasColumn(mapper.Column))
                         continue;
 
                     counter++;
-                    _appSetting.Logger.WriteLine($"    {counter}. '{table.FullName}' and '{mapper.Key}'");
-                    _relations.AddNewRelation(mapper.Key, mapper.Value, table.FullName, mapper.Value);
+                    _appSetting.Logger.WriteLine($"    {counter}. '{table.FullName}' and '{mapper.Table}'");
+                    _relations.AddNewRelation(mapper.Table, mapper.Column, table.FullName, mapper.Column);
                 }
             }
         }

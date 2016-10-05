@@ -1,4 +1,5 @@
-﻿using System.Configuration;
+﻿using System.Collections.Generic;
+using System.Configuration;
 
 namespace SqlDb.Baseline.Configurations
 {
@@ -15,6 +16,8 @@ namespace SqlDb.Baseline.Configurations
         public string Table => this["table"].ToString();
 
         [ConfigurationProperty("column", IsRequired = false)]
-        public string Column => this["column"].ToString();
+        protected string TableColumns => this["column"].ToString();
+
+        public IList<string> Columns => TableColumns.Split(',');
     }
 }

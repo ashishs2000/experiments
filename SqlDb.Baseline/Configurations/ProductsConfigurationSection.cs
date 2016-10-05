@@ -43,13 +43,13 @@ namespace SqlDb.Baseline.Configurations
         public MappingConfigurationCollection Mappings => (MappingConfigurationCollection)base[""];
 
         public FileWriter ScriptLogger { get; private set; }
-        public IDictionary<string, string> TableToEmployerMappers { get; set; }
+        public IList<TableColumn> TableToEmployerMappers { get; set; }
         public IList<string> LookupTables { get; set; }
         public IList<string> SkipTables { get; set; }
 
         public DatabaseElementConfiguration()
         {
-            TableToEmployerMappers = new Dictionary<string, string>();
+            TableToEmployerMappers = new List<TableColumn>();
             LookupTables = new List<string>();
             SkipTables = new List<string>();
         }
@@ -67,7 +67,7 @@ namespace SqlDb.Baseline.Configurations
                         break;
                     case MappingType.Relation:
                         foreach (TableToColumnMapElement setting in mapping.Settings)
-                            TableToEmployerMappers.Add(setting.Table,setting.Column);
+                            setting.Columns.ForEach(col => TableToEmployerMappers.Add(new TableColumn(setting.Table,col)));
                         break;
                     case MappingType.Lookup:
                         foreach (TableToColumnMapElement setting in mapping.Settings)
@@ -76,5 +76,17 @@ namespace SqlDb.Baseline.Configurations
                 }
             }
         }
+    }
+
+    public class TableColumn
+    {
+        public TableColumn(string table, string column)
+        {
+            Table = table;
+            Column = column;
+        }
+
+        public string Table { get; private set; }
+        public string Column { get; private set; }
     }
 }

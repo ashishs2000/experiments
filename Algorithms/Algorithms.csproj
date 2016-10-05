@@ -89,7 +89,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CustomProvider\JoinExpression.cs" />
-    <Compile Include="DatabaseExtractor.cs" />
     <Compile Include="DynamicDemo\DynamicClassFactory.cs" />
     <Compile Include="DynamicDemo\DynamicDbContext.cs" />
     <Compile Include="DynamicDemo\DynamicEntity.cs" />

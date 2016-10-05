@@ -25,16 +25,7 @@ namespace SqlDb.Baseline.Models
             PrimaryKey = primaryKey;
             Columns = new List<string>();
         }
-
-        public DbTableRelationship CanBeLinkedToEmployer()
-        {
-            return Columns.Contains("userid", new IgnoreCaseComparer())
-                ? DbTableRelationship.WithUser(FullName)
-                : Columns.Contains("employeeid", new IgnoreCaseComparer())
-                    ? DbTableRelationship.WithEmployee(FullName)
-                    : null;
-        }
-
+        
         public bool HasEmployerId => Columns.Contains("employerid", new IgnoreCaseComparer());
         public bool IsTableName(string tableName) => FullName.Equals(tableName, StringComparison.CurrentCultureIgnoreCase);
         public bool HasColumn(string columnName) => Columns.Contains(columnName, new IgnoreCaseComparer());
