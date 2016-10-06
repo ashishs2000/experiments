@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.Text.RegularExpressions;
 using SqlDb.Baseline.Configurations;
 
 namespace SqlDb.Baseline

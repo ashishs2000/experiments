@@ -30,14 +30,19 @@ namespace SqlDb.Baseline
 
         public void Generate()
         {
-            var baseScript = File.ReadAllText("BeforeBaseline.sql");
-            ScriptWriter.AddHeader("Base Script");
-            ScriptWriter.WriteLine(baseScript);
+            ScriptWriter.WriteLine($"Use {_dbSettings.Name}");
+            ScriptWriter.WriteLine("GO");
 
-            //AppendLookupTableMigration();
+            ScriptWriter.AddHeader("Before Base Script");
+            ScriptWriter.WriteLine(_appSettings.OutputFileBeforeData);
+
+            AppendLookupTableMigration();
             CreateInsertStatementWithTree();
-            //LogMissingFile();
-            //LogSkippedTables();
+            LogMissingFile();
+            LogSkippedTables();
+
+            ScriptWriter.AddHeader("After Base Script");
+            ScriptWriter.WriteLine(_appSettings.OutputFileAfterData);
         }
 
         private void CreateInsertStatementWithTree()

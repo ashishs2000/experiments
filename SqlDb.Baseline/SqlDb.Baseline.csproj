@@ -70,7 +70,7 @@
     <None Include="App.config.template" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="BeforeBaseline.sql">
+    <Content Include="BaselineTemplate.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
