@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <configuration>
   <configSections>
-    <section name="migrationSection" type="SqlDb.Baseline.Configurations.ProductsConfigurationSection,SqlDb.Baseline" />
+    <section name="migrationSection" type="SqlDb.Baseline.ConfigSections.ProductsConfigurationSection,SqlDb.Baseline" />
   </configSections>
   <startup>
     <supportedRuntime version="v4.0" sku=".NETFramework,Version=v4.5.2" />
@@ -18,14 +18,14 @@
     <add key="OutputLocation" value="Output"/>
     <add key="InsertTableTemplate"
      value="
-        IF NOT EXISTS (SELECT 1 FROM Migrations.Baseline WHERE TableName = '{tablename}')
-        BEGIN
-          TRUNCATE TABLE {tablename}
+IF NOT EXISTS (SELECT 1 FROM Migrations.Baseline WHERE TableName = '{tablename}')
+BEGIN
+  TRUNCATE TABLE {tablename}
 
-          {statement}
-          INSERT INTO Migrations.Baseline(TableName,IsCompleted)
-          SELECT '{tablename}',1
-        END"/>
+  {statement}
+  INSERT INTO Migrations.Baseline(TableName,IsCompleted)
+  SELECT '{tablename}',1
+END"/>
   </appSettings>
 
   <migrationSection>
@@ -168,7 +168,7 @@
     </database>
 
     <!--gj_mainsite configuration-->
-    <database name="gj_mainsite1" output="gj_mainsite.sql" target="test">
+    <!--<database name="gj_mainsite1" output="gj_mainsite.sql" target="test">
       <mappings maptype="ignore">
         <add table="Migrations.*"/>
         <add table="Hangfire.*"/>
@@ -469,7 +469,7 @@
         <add table="dbo.ExamPlan" column="ExamPlanID"/>
         <add table="dbo.Requisitions" column="ReqID"/>
       </mappings>
-    </database>
+    </database>-->
 
     <!--sso configuration-->
     <!--<database name="sso" target="test">
