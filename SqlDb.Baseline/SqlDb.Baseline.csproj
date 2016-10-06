@@ -45,11 +45,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BaselineScriptGenerator.cs" />
-    <Compile Include="Configurations\AppConfiguration.cs" />
-    <Compile Include="Configurations\ConfigurationReader.cs" />
-    <Compile Include="Configurations\MappingConfigurationCollection.cs" />
-    <Compile Include="Configurations\ProductsConfigurationSection.cs" />
-    <Compile Include="Configurations\TableToColumnCollection.cs" />
+    <Compile Include="ConfigSections\AppConfiguration.cs" />
+    <Compile Include="ConfigSections\ConfigurationReader.cs" />
+    <Compile Include="ConfigSections\MappingConfigurationCollection.cs" />
+    <Compile Include="ConfigSections\ProductsConfigurationSection.cs" />
+    <Compile Include="ConfigSections\TableToColumnCollection.cs" />
     <Compile Include="DatabaseParser.cs" />
     <Compile Include="DatabaseRunner.cs" />
     <Compile Include="Helpers\CaseInsensitiveEnumConfigConverter.cs" />

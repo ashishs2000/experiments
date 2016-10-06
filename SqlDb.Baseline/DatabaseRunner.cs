@@ -1,5 +1,5 @@
 ﻿using System;
-using SqlDb.Baseline.Configurations;
+using SqlDb.Baseline.ConfigSections;
 using SqlDb.Baseline.Query;
 
 namespace SqlDb.Baseline

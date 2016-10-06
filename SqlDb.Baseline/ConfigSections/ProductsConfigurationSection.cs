@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using SqlDb.Baseline.Helpers;
 
-namespace SqlDb.Baseline.Configurations
+namespace SqlDb.Baseline.ConfigSections
 {
     public class ProductsConfigurationSection : ConfigurationSection
     {

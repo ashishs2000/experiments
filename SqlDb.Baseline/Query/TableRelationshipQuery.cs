@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data.SqlClient;
 using System.Linq;
-using SqlDb.Baseline.Configurations;
+using SqlDb.Baseline.ConfigSections;
 using SqlDb.Baseline.Helpers;
 using SqlDb.Baseline.Models;
 

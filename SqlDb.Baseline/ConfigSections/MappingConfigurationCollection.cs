@@ -2,7 +2,7 @@ using System.ComponentModel;
 using System.Configuration;
 using SqlDb.Baseline.Helpers;
 
-namespace SqlDb.Baseline.Configurations
+namespace SqlDb.Baseline.ConfigSections
 {
     [ConfigurationCollection(typeof(MappingElement),AddItemName = "mappings")]
     public class MappingConfigurationCollection : ConfigurationElementCollection

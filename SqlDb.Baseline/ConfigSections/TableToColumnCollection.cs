@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Configuration;
 
-namespace SqlDb.Baseline.Configurations
+namespace SqlDb.Baseline.ConfigSections
 {
     [ConfigurationCollection(typeof(TableToColumnMapElement))]
     public class TableToColumnCollection : ConfigurationElementCollection

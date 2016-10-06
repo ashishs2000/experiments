@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text.RegularExpressions;
-using SqlDb.Baseline.Configurations;
+using SqlDb.Baseline.ConfigSections;
 
 namespace SqlDb.Baseline
 {

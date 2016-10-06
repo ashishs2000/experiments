@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Configuration;
 
-namespace SqlDb.Baseline.Configurations
+namespace SqlDb.Baseline.ConfigSections
 {
     public abstract class ConfigurationReader
     {

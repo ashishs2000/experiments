@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using SqlDb.Baseline.Configurations;
+using SqlDb.Baseline.ConfigSections;
 using SqlDb.Baseline.Helpers;
 using SqlDb.Baseline.Models;
 
