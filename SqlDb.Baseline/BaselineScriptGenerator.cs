@@ -14,12 +14,13 @@ namespace SqlDb.Baseline
         private readonly DatabaseParser _databaseParser;
         private readonly IApplicationSetting _appSettings;
         private readonly DatabaseElementConfiguration _dbSettings;
-        private readonly List<LinearTableView> _missing = new List<LinearTableView>();
+        private readonly List<DbTable> _missing = new List<DbTable>();
         private readonly List<string> _tableCovered = new List<string>();
         private readonly List<string> _tableSkipped = new List<string>(); 
 
         private FileWriter ScriptWriter => _dbSettings.ScriptLogger;
         private FileWriter EventLogger => _dbSettings.EventLogger;
+
         public BaselineScriptGenerator(DatabaseParser databaseParser, IApplicationSetting appSettings, DatabaseElementConfiguration dbSettings)
         {
             _databaseParser = databaseParser;
@@ -33,10 +34,69 @@ namespace SqlDb.Baseline
             ScriptWriter.AddHeader("Base Script");
             ScriptWriter.WriteLine(baseScript);
 
-            AppendLookupTableMigration();
-            AppendTransactionTableMigration();
-            LogMissingFile();
-            LogSkippedTables();
+            //AppendLookupTableMigration();
+            CreateInsertStatementWithTree();
+            //LogMissingFile();
+            //LogSkippedTables();
+        }
+
+        private void CreateInsertStatementWithTree()
+        {
+            ScriptWriter.AddHeader("Transactional Table Migrations");
+            var tableCounter = 1;
+            foreach (var tree in _databaseParser.TreeRelations)
+            {
+                var table = tree.Value.Table;
+                if (ShouldSkipTable(table.FullName))
+                    continue;
+                
+                var builder = new QueryBuilder(table);
+                BuildInsertStatement(tree.Value, 1, builder, new List<InnerJoin>());
+
+                if (!builder.HasMappedEmployer)
+                    _missing.Add(table);
+                else
+                {
+                    var statement = builder.ToString();
+                    statement = InjectQuery(tableCounter, table, statement);
+                    ScriptWriter.WriteLine(statement);
+
+                    _tableCovered.Add(table.FullName);
+                    tableCounter++;
+                }
+            }
+        }
+
+        private void BuildInsertStatement(Tree joinTree, int aliasCounter, QueryBuilder queryBuilder, IList<InnerJoin> joins)
+        {
+            if(joinTree.Table == null)
+                return;
+
+            var pAlias = $"a{aliasCounter}";
+            if (joinTree.Table.HasEmployerId)
+            {
+                queryBuilder.Add(pAlias, joins.ToArray());
+                return;
+            }
+
+            if (!joinTree.Childrens.Any())
+                return;
+
+            foreach (var children in joinTree.Childrens)
+            {
+                if(children.RightTree == null)
+                    continue;
+                var cAlias = $"a{aliasCounter = aliasCounter + 1}";
+
+                var innerJoin = new InnerJoin();
+                innerJoin.LeftCondition(children.LeftKey, pAlias);
+                innerJoin.RightCondition(children.RightTree.Table.FullName, children.RightKey, cAlias);
+
+                joins.Add(innerJoin);
+                BuildInsertStatement(children.RightTree, aliasCounter, queryBuilder, joins);
+
+                joins.RemoveAt(joins.Count - 1);
+            }
         }
 
         private void AppendLookupTableMigration()
@@ -48,7 +108,7 @@ namespace SqlDb.Baseline
             {
                 if(ShouldSkipTable(tableName))
                     continue;
-
+                
                 var table = _databaseParser.Tables.GetTable(tableName);
                 if(table == null)
                     continue;
@@ -63,93 +123,33 @@ namespace SqlDb.Baseline
             }
         }
 
-        private void AppendTransactionTableMigration()
-        {
-            var tableCounter = 1;
-            ScriptWriter.AddHeader("Transactional Table Migrations");
-
-            foreach (var tableLink in _databaseParser.TableLinks)
-            {
-                if (ShouldSkipTable(tableLink.PrimaryTable.FullName))
-                    continue;
-
-                if (!LinearTableView.CanLinkToEmployer(tableLink))
-                {
-                    _missing.Add(tableLink);
-                    continue;
-                }
-
-                var statement = CreateInsertQuery(tableLink, 1);
-                statement = InjectQuery(tableCounter, tableLink.PrimaryTable, statement);
-                ScriptWriter.WriteLine(statement);
-
-                _tableCovered.Add(tableLink.PrimaryTable.FullName);
-                tableCounter++;
-            }
-        }
-
-        private string InjectQuery(int counter, DbTable table, string statement)
+        private string CreateInsert(DbTable targetTable, string targetDb, string alias, bool excludeInsert = false)
         {
             var builder = new StringBuilder();
-            builder.AppendLine($"-- ***** [{counter}] Migrating {table.FullName} ***** ");
-            
-            builder.AppendLine(_appSettings.TableTemplate(table,statement));
-
-            builder.AppendLine("".PadRight(50, '-'));
-            builder.AppendLine("");
-            return builder.ToString();
-        }
-
-        private string CreateInsertQuery(LinearTableView tableLink, int aliasCounter)
-        {
-            var pAlias = $"a{aliasCounter}";
-            var queryBuilder = new StringBuilder();
-            queryBuilder.Append(CreateInsert(tableLink.PrimaryTable, _dbSettings.TargetDatabase, pAlias));
-
-            JoinNextTable(tableLink, queryBuilder, aliasCounter);
-            return queryBuilder.ToString();
-        }
-
-        private void JoinNextTable(LinearTableView tableView, StringBuilder queryBuilder, int aliasCounter)
-        {
-            if(tableView == null)
-                return;
-
-            var pAlias = $"a{aliasCounter}";
-            if (tableView.PrimaryTable.HasEmployerId)
-            {
-                queryBuilder.AppendLine(JoinEmployers(pAlias));
-                return;
-            }
-
-            if(tableView.Next?.RightForeignTable == null)
-                return;
-
-            aliasCounter++;
-            var cAlias = $"a{aliasCounter}";
-            var rightTable = tableView.Next.RightForeignTable.PrimaryTable;
-            queryBuilder.AppendLine($"INNER JOIN {rightTable.FullName} {cAlias} " +
-                                    $"ON {pAlias}.{tableView.Next.LeftPrimaryTableKey} " +
-                                    $"= {cAlias}.{tableView.Next.RightForeignTableKey}");
-            
-            JoinNextTable(tableView.Next.RightForeignTable, queryBuilder, aliasCounter);
-        }
-
-
-        private string JoinEmployers(string alias, string joinColumn = "employerId")
-        {
-            return $"INNER JOIN @EmployerIds eids ON eids.EmployerId = {alias}.{joinColumn}";
-        }
-
-        private string CreateInsert(DbTable targetTable, string targetDb, string alias)
-        {
-            var builder = new StringBuilder();
-            builder.AppendLine($"INSERT INTO {targetDb}.{targetTable.FullName} ({targetTable.Csv()})");
+            if (!excludeInsert)
+                builder.AppendLine($"INSERT INTO {targetDb}.{targetTable.FullName} ({targetTable.Csv()})");
             builder.AppendLine($"SELECT {targetTable.Csv(alias)}");
             builder.AppendLine($"FROM {targetTable.FullName} {alias}");
             return builder.ToString();
         }
 
+        private string InjectQuery(int counter, DbTable table, string statement)
+        {
+            var statementBuilder = new StringBuilder();
+            if (table.HasIdentiyColumn)
+                statementBuilder.AppendLine($"SET IDENTITY_INSERT {_dbSettings.TargetDatabase}.{table.FullName} ON");
+            statementBuilder.AppendLine(statement);
+            if (table.HasIdentiyColumn)
+                statementBuilder.AppendLine($"SET IDENTITY_INSERT {_dbSettings.TargetDatabase}.{table.FullName} OFF");
+
+            var builder = new StringBuilder();
+            builder.AppendLine($"-- ***** [{counter}] Migrating {table.FullName} ***** ");
+            builder.AppendLine(_appSettings.TableTemplate(table, statementBuilder.ToString()));
+            builder.AppendLine("".PadRight(50, '-'));
+            builder.AppendLine("");
+            return builder.ToString();
+        }
+        
         private bool ShouldSkipTable(string tablename)
         {
             if (_dbSettings.SkipTables.Any(p => Regex.IsMatch(tablename, p, RegexOptions.IgnoreCase)))
@@ -174,12 +174,12 @@ namespace SqlDb.Baseline
                 return;
             }
 
-            foreach (var tableLink in _missing.OrderBy(p => p.PrimaryTable.Schema).ThenBy(p => p.PrimaryTable.Name))
+            foreach (var tableLink in _missing.OrderBy(p => p.Schema).ThenBy(p => p.Name))
             {
-                if (ShouldSkipTable(tableLink.PrimaryTable.FullName))
+                if (ShouldSkipTable(tableLink.FullName))
                     continue;
 
-                EventLogger.WriteLine($"   {counter}. {tableLink.PrimaryTable.FullName} - ({tableLink.PrimaryTable.Csv()})");
+                EventLogger.WriteLine($"   {counter}. {tableLink.FullName} - ({tableLink.Csv()})");
                 counter++;
             }
             EventLogger.NewLine();

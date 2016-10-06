@@ -20,7 +20,7 @@ namespace SqlDb.Baseline
             var tables = new TableQuery(_configuration);
             var relations = new TableRelationshipQuery(_configuration);
 
-            var database = new DatabaseParser(tables, relations, _appConfiguration, _configuration);
+            var database = new DatabaseParser(tables, relations, _configuration);
             database.LoadRelations();
 
             var query = new BaselineScriptGenerator(database, _appConfiguration, _configuration);

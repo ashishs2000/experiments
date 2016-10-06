@@ -14,6 +14,7 @@ namespace SqlDb.Baseline.Models
         public string Schema { get; set; }
         public string Name { get; set; }
         public string PrimaryKey { get; set; }
+        public bool HasIdentiyColumn { get; set; }
         public IList<string> Columns { get; set; }
         public string Csv(string alias = null) => string.Join(",", string.IsNullOrEmpty(alias)
             ? Columns

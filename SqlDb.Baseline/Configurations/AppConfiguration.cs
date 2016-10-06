@@ -19,6 +19,7 @@ namespace SqlDb.Baseline.Configurations
         public AppConfiguration()
         {
             var template = ReadOrDefaultProperty("InsertTableTemplate", "");
+
             TableTemplate = (table, statement) =>
             {
                 var temp = template.Replace("{tablename}", table.FullName);
