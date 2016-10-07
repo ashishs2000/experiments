@@ -56,9 +56,11 @@ namespace SqlDb.Baseline.Query
 
             var con = new SqlConnection(conString);
             con.Execute(TABLE_QUERY,AddTableInfo);
+            SummaryRecorder.Current.TableCount = OnlyTables.Count;
 
             var con2 = new SqlConnection(conString);
             con2.Execute(VIEW_QUERY, AddViewInfo);
+            SummaryRecorder.Current.ViewCount = AllObjects.Count - SummaryRecorder.Current.TableCount;
 
             var con3 = new SqlConnection(conString);
             con3.Execute(TABLE_IDENTITY, MapIdentityColumn);

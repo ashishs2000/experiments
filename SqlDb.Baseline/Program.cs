@@ -5,7 +5,7 @@ using SqlDb.Baseline.ConfigSections;
 
 namespace SqlDb.Baseline
 {
-    class Program
+    internal class Program
     {
         static void Main(string[] args)
         {
@@ -17,15 +17,21 @@ namespace SqlDb.Baseline
                 var configurations = new AppConfiguration();
                 foreach (var database in configurations.Databases)
                 {
+                    var dbConfiguration = configurations.GetDatabaseSetting(database);
+                    if(dbConfiguration.Skip)
+                        continue;
+
+                    SummaryRecorder.Switch(database);
                     Logger.LogInfo($"Start Processing '{database}'");
                     Logger.SetIndent();
 
-                    using (var runner = new DatabaseRunner(configurations, database))
+                    using (var runner = new DatabaseRunner(configurations, dbConfiguration, database))
                         runner.Execute(output != "s");
 
                     Logger.ResetAllIndent();
                     Logger.LogInfo($"Complete Processing '{database}'");
                 }
+                var sum = SummaryRecorder.Summaries;
             }
             catch (Exception ex)
             {
@@ -102,5 +108,35 @@ namespace SqlDb.Baseline
             WriteLine(LogType.Info,message, args);
             return Console.ReadLine();
         }
+    }
+
+    public static class SummaryRecorder
+    {
+        public static readonly IList<Summary> Summaries = new List<Summary>();
+        public static Summary Current { get; private set; }
+
+        public static Summary Switch(string database)
+        {
+            Summaries.Add(Current = new Summary(database));
+            return Current;
+        }
+    }
+
+    public class Summary
+    {
+        public Summary(string database)
+        {
+            Database = database;
+        }
+
+        public string Database { get; private set; }
+        public int TableCount { get; set; }
+        public int ViewCount { get; set; }
+
+        public int DatabaseRelationCount { get; set; }
+        public int CustomDatabaseRelationCount { get; set; }
+
+        public int IgnoreTableCount { get; set; }
+        public int MigrationTableCount { get; set; }
     }
 }

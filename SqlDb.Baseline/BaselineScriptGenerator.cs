@@ -56,6 +56,8 @@ namespace SqlDb.Baseline
                 ScriptWriter.AddHeader("After Base Script");
                 ScriptWriter.WriteLine(_appSettings.OutputFileAfterData);
             }
+            SummaryRecorder.Current.IgnoreTableCount = _missing.Count;
+            SummaryRecorder.Current.MigrationTableCount = _tableCovered.Count;
         }
 
         private void CreateInsertStatementWithTree()

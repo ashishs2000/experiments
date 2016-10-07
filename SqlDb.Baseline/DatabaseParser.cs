@@ -1,7 +1,5 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using SqlDb.Baseline.ConfigSections;
 using SqlDb.Baseline.Helpers;
@@ -33,12 +31,6 @@ namespace SqlDb.Baseline
 
         public void LoadRelations()
         {
-            EventLogger.AddHeader("Extracted Information");
-            EventLogger.WriteLine($"    Total Tables : {Tables.OnlyTables.Count}");
-            EventLogger.WriteLine($"    Total Mapped Relations : {TableRelations.Relationships.Count}");
-            EventLogger.WriteLine($"    Total Custom Relations : {_dbSettings.TableToEmployerMappers.Count}");
-            EventLogger.NewLine();
-
             AppendRelationWhichCanLinkToEmployer();
 
             foreach (var tree in TreeRelations.Values)
@@ -99,7 +91,7 @@ namespace SqlDb.Baseline
 
                     counter++;
                     EventLogger.WriteLine($"    {counter}. '{table.FullName}' and '{mapper.Table}'");
-                    if(TableRelations.AddNewRelation(mapper.Table, mapper.Column, table.FullName, mapper.Column))
+                    if(TableRelations.AddNewRelation(mapper.Table, mapper.Column, table.FullName, mapper.Column,false))
                         foundRelations++;
                 }
 
@@ -114,6 +106,7 @@ namespace SqlDb.Baseline
             Console.ResetColor();
             Console.Out.WriteLine("");
 
+            SummaryRecorder.Current.CustomDatabaseRelationCount = foundRelations;
             Logger.LogInfo($"Total possible relationships found - {foundRelations}");
             if (foundRelations <= 0)
                 EventLogger.WriteLine("     No relation found");

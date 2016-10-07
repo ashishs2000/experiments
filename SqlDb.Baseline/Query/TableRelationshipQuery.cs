@@ -37,9 +37,11 @@ namespace SqlDb.Baseline.Query
             Relationships = new List<DbTableRelationship>();
             var con = new SqlConnection(conString);
             con.Execute(TABLE_QUERY, AddTableInfo);
+
+            SummaryRecorder.Current.DatabaseRelationCount = Relationships.Count;
         }
 
-        public bool AddNewRelation(string primaryTable, string primaryKey, string foreignTable, string foreignKey)
+        public bool AddNewRelation(string primaryTable, string primaryKey, string foreignTable, string foreignKey, bool isRealRelation)
         {
             if (Relationships.Any(p => p.PrimaryTable.Equals(primaryTable, StringComparison.CurrentCultureIgnoreCase)
                                        && p.ForeignTable.Equals(foreignTable, StringComparison.InvariantCultureIgnoreCase)))
@@ -50,7 +52,8 @@ namespace SqlDb.Baseline.Query
                 PrimaryTable = primaryTable,
                 PrimaryKey = primaryKey,
                 ForeignTable = foreignTable,
-                ForeignKey = foreignKey
+                ForeignKey = foreignKey,
+                IsExistingRelation = true
             };
             Relationships.Add(relation);
             return true;

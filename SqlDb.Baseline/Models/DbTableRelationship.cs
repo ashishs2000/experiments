@@ -6,6 +6,7 @@ namespace SqlDb.Baseline.Models
         public string PrimaryTable { get; set; }
         public string ForeignKey { get; set; }
         public string ForeignTable { get; set; }
+        public bool IsExistingRelation { get; set; } = true;
 
         public override string ToString()
         {

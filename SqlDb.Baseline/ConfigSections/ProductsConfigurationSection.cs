@@ -44,6 +44,9 @@ namespace SqlDb.Baseline.ConfigSections
         [ConfigurationProperty("log")]
         public string LogFile => this["log"].ToString();
 
+        [ConfigurationProperty("skip",DefaultValue = false)]
+        public bool Skip => Convert.ToBoolean(this["skip"]);
+
         [ConfigurationProperty("", IsDefaultCollection = true)]
         public MappingConfigurationCollection Mappings => (MappingConfigurationCollection)base[""];
 
