@@ -54,21 +54,22 @@ namespace SqlDb.Baseline
                 var table = tree.Value.Table;
                 if (ShouldSkipTable(table.FullName))
                     continue;
-                
+
                 var builder = new QueryBuilder(table);
                 BuildInsertStatement(tree.Value, 1, builder, new List<InnerJoin>());
 
                 if (!builder.HasMappedEmployer)
-                    _missing.Add(table);
-                else
                 {
-                    var statement = builder.ToString();
-                    statement = InjectQuery(tableCounter, table, statement);
-                    ScriptWriter.WriteLine(statement);
-
-                    _tableCovered.Add(table.FullName);
-                    tableCounter++;
+                    _missing.Add(table);
+                    continue;
                 }
+
+                var statement = builder.ToString();
+                statement = InjectQuery(tableCounter, table, statement);
+                ScriptWriter.WriteLine(statement);
+
+                _tableCovered.Add(table.FullName);
+                tableCounter++;
             }
         }
 

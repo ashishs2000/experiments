@@ -18,13 +18,20 @@ namespace SqlDb.Baseline
         public void Execute()
         {
             var tables = new TableQuery(_configuration);
-            var relations = new TableRelationshipQuery(_configuration);
+            Logger.LogInfo($"Total extracted tables and views - {tables.AllObjects.Count}");
 
+            var relations = new TableRelationshipQuery(_configuration);
+            Logger.LogInfo($"Total relationships found in database - {relations.Relationships.Count}");
+
+            Logger.LogInfo("Parsing and analysing gathered database information");
             var database = new DatabaseParser(tables, relations, _configuration);
             database.LoadRelations();
 
+            Logger.LogInfo("Generating baseline script");
             var query = new BaselineScriptGenerator(database, _appConfiguration, _configuration);
             query.Generate();
+
+            Logger.LogInfo($"Baseline script path - '{_configuration.OutputFile}'");
         }
 
         public void Dispose()

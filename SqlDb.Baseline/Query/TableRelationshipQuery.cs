@@ -39,11 +39,11 @@ namespace SqlDb.Baseline.Query
             con.Execute(TABLE_QUERY, AddTableInfo);
         }
 
-        public void AddNewRelation(string primaryTable, string primaryKey, string foreignTable, string foreignKey)
+        public bool AddNewRelation(string primaryTable, string primaryKey, string foreignTable, string foreignKey)
         {
             if (Relationships.Any(p => p.PrimaryTable.Equals(primaryTable, StringComparison.CurrentCultureIgnoreCase)
                                        && p.ForeignTable.Equals(foreignTable, StringComparison.InvariantCultureIgnoreCase)))
-                return;
+                return false;
 
             var relation = new DbTableRelationship
             {
@@ -53,6 +53,7 @@ namespace SqlDb.Baseline.Query
                 ForeignKey = foreignKey
             };
             Relationships.Add(relation);
+            return true;
         }
 
         private void AddTableInfo(SqlDataReader reader)

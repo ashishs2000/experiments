@@ -26,6 +26,8 @@ namespace SqlDb.Baseline.ConfigSections
 
         public AppConfiguration()
         {
+            Logger.LogInfo("Reading Configurations");
+
             var template = ReadOrDefaultProperty("InsertTableTemplate", "");
 
             TableTemplate = (table, statement) =>

@@ -70,14 +70,25 @@ namespace SqlDb.Baseline
           
         private void AppendRelationWhichCanLinkToEmployer()
         {
+            Logger.LogInfo("Searching possible relationships");
+            Logger.SetIndent();
+
             AddPossibleRelationships();
             PrintSqlRelationStats();
 
             var counter = 0;
-            var foundRelation = false;
+            var foundRelations = 0;
+            var iteratorCount = 0;
+
             EventLogger.AddHeader("Following custom relationship are established");
+
+            decimal total = _dbSettings.TableToEmployerMappers.Count;
+            var lastPercentReported = 0;
+
+            Console.Out.Write("".PadRight(Logger.CurrentIndent,' ') + "Percent completed - ");
             foreach (var mapper in _dbSettings.TableToEmployerMappers)
             {
+                iteratorCount++;
                 if (!Tables.IsTableOrViewExists(mapper.Table))
                     continue;
 
@@ -88,18 +99,30 @@ namespace SqlDb.Baseline
 
                     counter++;
                     EventLogger.WriteLine($"    {counter}. '{table.FullName}' and '{mapper.Table}'");
-                    _relations.AddNewRelation(mapper.Table, mapper.Column, table.FullName, mapper.Column);
-                    foundRelation = true;
+                    if(_relations.AddNewRelation(mapper.Table, mapper.Column, table.FullName, mapper.Column))
+                        foundRelations++;
                 }
-            }
 
-            if(!foundRelation)
+                var percentCompleted = Convert.ToInt32((iteratorCount/total)*100);
+                if (lastPercentReported == percentCompleted || percentCompleted%20 != 0)
+                    continue;
+
+                Console.Write($" {percentCompleted}%  ");
+                lastPercentReported = percentCompleted;
+            }
+            Console.Out.WriteLine("");
+
+            Logger.LogInfo($"Total possible relationships found - {foundRelations}");
+            if (foundRelations <= 0)
                 EventLogger.WriteLine("     No relation found");
+
             EventLogger.NewLine();
+            Logger.ResetIndent();
         }
-        
+
         private void AddPossibleRelationships()
         {
+            var counter = 0;
             foreach (var table in Tables.OnlyTables.Values)
             {
                 if(table.PrimaryKey.Equals("id",StringComparison.CurrentCultureIgnoreCase))
@@ -108,6 +131,7 @@ namespace SqlDb.Baseline
                 if (_dbSettings.TableToEmployerMappers.Any(p => p.Table == table.FullName && p.Column == table.PrimaryKey))
                     continue;
 
+                counter = counter + 1;
                 _dbSettings.TableToEmployerMappers.Add(new TableColumn(table.FullName,table.PrimaryKey));
             }
         }
