@@ -41,9 +41,6 @@ namespace SqlDb.Baseline.ConfigSections
         [ConfigurationProperty("output")]
         public string OutputFile => this["output"].ToString();
 
-        [ConfigurationProperty("log")]
-        public string LogFile => this["log"].ToString();
-
         [ConfigurationProperty("skip",DefaultValue = false)]
         public bool Skip => Convert.ToBoolean(this["skip"]);
 
@@ -52,7 +49,6 @@ namespace SqlDb.Baseline.ConfigSections
 
         public string OutputLocation { get; private set; }
         public FileWriter ScriptLogger { get; private set; }
-        public FileWriter EventLogger { get; private set; }
         public IList<TableColumn> TableToEmployerMappers { get; set; }
         public IList<string> LookupTables { get; set; }
         public IList<string> SkipTables { get; set; }
@@ -67,7 +63,6 @@ namespace SqlDb.Baseline.ConfigSections
         public void ParseAndLoad(IApplicationSetting applicationSetting)
         {
             SetupFileStream(OutputFile, applicationSetting.OutputLocation, $"{Name}.sql", fileName => ScriptLogger = new FileWriter(fileName));
-            SetupFileStream(LogFile, applicationSetting.OutputLocation, $"{Name}.txt", fileName => EventLogger = new FileWriter(fileName));
 
             foreach (MappingElement mapping in Mappings)
             {

@@ -17,7 +17,6 @@ namespace SqlDb.Baseline
         public TableRelationshipQuery TableRelations { get; }
 
         public int TablesCount => Tables.OnlyTables.Values.Count();
-        private FileWriter EventLogger => _dbSettings.EventLogger;
 
         public DatabaseParser(TableQuery tables, TableRelationshipQuery relations, DatabaseElementConfiguration dbSettings)
         {
@@ -72,7 +71,7 @@ namespace SqlDb.Baseline
             var foundRelations = 0;
             var iteratorCount = 0;
 
-            EventLogger.AddHeader("Following custom relationship are established");
+            LogFile.HeaderH3("Following custom relationship are established");
 
             decimal total = _dbSettings.TableToEmployerMappers.Count;
             var lastPercentReported = 0;
@@ -90,7 +89,7 @@ namespace SqlDb.Baseline
                         continue;
 
                     counter++;
-                    EventLogger.WriteLine($"    {counter}. '{table.FullName}' and '{mapper.Table}'");
+                    LogFile.Info($"    {counter}. '{table.FullName}' and '{mapper.Table}'");
                     if(TableRelations.AddNewRelation(mapper.Table, mapper.Column, table.FullName, mapper.Column,false))
                         foundRelations++;
                 }
@@ -109,9 +108,8 @@ namespace SqlDb.Baseline
             SummaryRecorder.Current.CustomDatabaseRelationCount = foundRelations;
             Logger.LogInfo($"Total possible relationships found - {foundRelations}");
             if (foundRelations <= 0)
-                EventLogger.WriteLine("     No relation found");
+                LogFile.Info("     No relation found");
 
-            EventLogger.NewLine();
             Logger.ResetIndent();
         }
 
@@ -133,21 +131,20 @@ namespace SqlDb.Baseline
 
         private void PrintSqlRelationStats()
         {
-            EventLogger.AddHeader($"Following relationship exists in '{_dbSettings.Name}'");
+            LogFile.HeaderH3($"Following relationship exists in '{_dbSettings.Name}'");
             if (TableRelations.Relationships.Any())
             {
                 var counter = 0;
                 foreach (var relation in TableRelations.Relationships)
                 {
                     counter++;
-                    EventLogger.WriteLine($"    {counter}. '{relation.PrimaryTable}' and '{relation.ForeignTable}'");
+                    LogFile.Info($"     {counter}. '{relation.PrimaryTable}' and '{relation.ForeignTable}'");
                 }
             }
             else
             {
-                EventLogger.WriteLine("     No relationship exists.");
+                LogFile.Info("      No relationship exists.");
             }
-            EventLogger.NewLine();
         }
 
         #endregion

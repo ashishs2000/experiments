@@ -33,6 +33,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="log4net, Version=1.2.15.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\packages\log4net.2.0.5\lib\net45-full\log4net.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
@@ -56,7 +60,9 @@
     <Compile Include="Helpers\CaseInsensitiveEnumConfigConverter.cs" />
     <Compile Include="Helpers\Extensions.cs" />
     <Compile Include="Helpers\IgnoreCaseComparer.cs" />
+    <Compile Include="Helpers\LogFile.cs" />
     <Compile Include="Helpers\QueryBuilder.cs" />
+    <Compile Include="Helpers\SummaryRecorder.cs" />
     <Compile Include="Models\InnerJoin.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -65,6 +71,12 @@
     <Compile Include="Models\DbTable.cs" />
     <Compile Include="Models\DbTableRelationship.cs" />
     <Compile Include="Models\Tree.cs" />
+    <Content Include="SqlTemplates\InsertOutputTemplate.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <None Include="SqlTemplates\SelectOutputTemplate.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -72,11 +84,7 @@
     <None Include="NeogovPe.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="BaselineTemplate.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

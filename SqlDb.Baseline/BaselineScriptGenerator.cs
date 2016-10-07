@@ -18,7 +18,6 @@ namespace SqlDb.Baseline
         private readonly List<string> _tableSkipped = new List<string>();
 
         private FileWriter ScriptWriter => _dbSettings.ScriptLogger;
-        private FileWriter EventLogger => _dbSettings.EventLogger;
         public bool GenerateInsertScript { get; set; } = true;
 
         public BaselineScriptGenerator(DatabaseParser databaseParser, IApplicationSetting appSettings, DatabaseElementConfiguration dbSettings)
@@ -33,29 +32,21 @@ namespace SqlDb.Baseline
             ScriptWriter.WriteLine($"Use {_dbSettings.Name}");
             ScriptWriter.WriteLine("GO");
 
-            if (GenerateInsertScript)
-            {
-                ScriptWriter.AddHeader("Before Base Script");
-                ScriptWriter.WriteLine(_appSettings.OutputFileBeforeData);
-            }
-            else
-            {
-                ScriptWriter.AddHeader("Before Base Script");
-                ScriptWriter.WriteLine("DECLARE @EmployerIds table (EmployerId int)");
-                ScriptWriter.WriteLine("INSERT INTO @EmployerIds(EmployerId)");
-                ScriptWriter.WriteLine("SELECT 1470");
-            }
+            ScriptWriter.AddHeader("Before Base Script");
+            ScriptWriter.WriteLine(GenerateInsertScript
+                ? _appSettings.InsertOutputBeforeTemplate
+                : _appSettings.SelectOutputBeforeTemplate);
 
             AppendLookupTableMigration();
             CreateInsertStatementWithTree();
             LogMissingFile();
             LogSkippedTables();
 
-            if (GenerateInsertScript)
-            {
-                ScriptWriter.AddHeader("After Base Script");
-                ScriptWriter.WriteLine(_appSettings.OutputFileAfterData);
-            }
+            ScriptWriter.AddHeader("After Base Script");
+            ScriptWriter.WriteLine(GenerateInsertScript
+                ? _appSettings.InsertOutputAfterTemplate
+                : _appSettings.SelectOutputAfterTemplate);
+
             SummaryRecorder.Current.IgnoreTableCount = _missing.Count;
             SummaryRecorder.Current.MigrationTableCount = _tableCovered.Count;
         }
@@ -131,7 +122,8 @@ namespace SqlDb.Baseline
         private void AppendLookupTableMigration()
         {
             var tableCounter = 1;
-            ScriptWriter.AddHeader("Lookup Table Migrations");
+            var migrated = false;
+            LogFile.HeaderH3("Lookup Table Migrations");
 
             foreach (var tableName in _dbSettings.LookupTables)
             {
@@ -148,9 +140,12 @@ namespace SqlDb.Baseline
                 if (!GenerateInsertScript)
                     ScriptWriter.WriteLine(statement);
                 _tableCovered.Add(table.FullName);
+                migrated = true;
 
                 tableCounter++;
             }
+            if(migrated)
+                LogFile.Info("  No Lookup table found");
         }
 
         public string CreateInsert(DbTable targetTable, string targetDb, string alias, bool excludeInsert = false)
@@ -202,10 +197,10 @@ namespace SqlDb.Baseline
         private void LogMissingFile()
         {
             var counter = 1;
-            EventLogger.AddHeader($"Missing Table Migrations {_missing.Count}/{_databaseParser.TablesCount}");
+            LogFile.HeaderH3($"Missing Table Migrations {_missing.Count}/{_databaseParser.TablesCount}");
             if (!_missing.Any())
             {
-                EventLogger.WriteLine("--   Perfect!!! All tables are accounted for migration");
+                LogFile.Info("--   Perfect!!! All tables are accounted for migration");
                 return;
             }
 
@@ -214,24 +209,22 @@ namespace SqlDb.Baseline
                 if (ShouldSkipTable(tableLink.FullName))
                     continue;
 
-                EventLogger.WriteLine($"   {counter}. {tableLink.FullName} - ({tableLink.Csv()})");
+                LogFile.Info($"   {counter}. {tableLink.FullName} - ({tableLink.Csv()})");
                 counter++;
             }
-            EventLogger.NewLine();
         }
 
         private void LogSkippedTables()
         {
-            EventLogger.AddHeader("Skipped Tables");
+            LogFile.HeaderH3("Skipped Tables");
             if (!_missing.Any())
             {
-                EventLogger.WriteLine("--   No Skip Tables");
+                LogFile.Info("      No Skip Tables");
                 return;
             }
 
             for (var i = 0; i < _tableSkipped.Count; i++)
-                EventLogger.WriteLine($"   {i+1}. {_tableSkipped[i]}");
-            EventLogger.NewLine();
+                LogFile.Info($"   {i+1}. {_tableSkipped[i]}");
         }
     }
 

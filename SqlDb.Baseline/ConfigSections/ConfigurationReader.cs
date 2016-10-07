@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Configuration;
+using SqlDb.Baseline.Helpers;
 
 namespace SqlDb.Baseline.ConfigSections
 {
@@ -13,6 +14,7 @@ namespace SqlDb.Baseline.ConfigSections
             }
             catch (Exception ex)
             {
+                LogFile.Error(ex);
                 return defaultValue;
             }
         }

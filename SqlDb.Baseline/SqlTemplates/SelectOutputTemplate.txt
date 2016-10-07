@@ -1,0 +1,9 @@
+﻿<before>
+DECLARE @EmployerIds table (EmployerId int)
+INSERT INTO @EmployerIds(EmployerId)
+SELECT 1470
+</before>
+
+<after>
+print 'Finished';
+</after>

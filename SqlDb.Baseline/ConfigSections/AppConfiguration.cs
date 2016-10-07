@@ -8,8 +8,10 @@ namespace SqlDb.Baseline.ConfigSections
 {
     public interface IApplicationSetting
     {
-        string OutputFileBeforeData { get; }
-        string OutputFileAfterData { get; }
+        string InsertOutputBeforeTemplate { get; }
+        string InsertOutputAfterTemplate { get; }
+        string SelectOutputBeforeTemplate { get; }
+        string SelectOutputAfterTemplate { get; }
 
         Func<DbTable, string, string> TableTemplate { get; }
         string OutputLocation { get; }
@@ -19,8 +21,10 @@ namespace SqlDb.Baseline.ConfigSections
     {
         private readonly ProductsConfigurationSection _configSection;
         public IList<string> Databases { get; }
-        public string OutputFileBeforeData { get; }
-        public string OutputFileAfterData { get; }
+        public string InsertOutputBeforeTemplate { get; }
+        public string InsertOutputAfterTemplate { get; }
+        public string SelectOutputBeforeTemplate { get; }
+        public string SelectOutputAfterTemplate { get; }
         public Func<DbTable, string, string> TableTemplate { get; }
         public string OutputLocation { get; }
 
@@ -41,9 +45,13 @@ namespace SqlDb.Baseline.ConfigSections
             _configSection = ProductsConfigurationSection.GetConfiguration(this);
             Databases = _configSection.Databases.Select(p => p.Name).ToList();
 
-            var outputTemplate = File.ReadAllText("BaselineTemplate.txt");
-            OutputFileBeforeData = Between(outputTemplate, "<before>", "</before>");
-            OutputFileAfterData = Between(outputTemplate, "<after>", "</after>");
+            var intertTemplate = File.ReadAllText("SqlTemplates/InsertOutputTemplate.txt");
+            InsertOutputBeforeTemplate = Between(intertTemplate, "<before>", "</before>");
+            InsertOutputAfterTemplate = Between(intertTemplate, "<after>", "</after>");
+
+            var selectTemplate = File.ReadAllText("SqlTemplates/SelectOutputTemplate.txt");
+            SelectOutputBeforeTemplate = Between(selectTemplate, "<before>", "</before>");
+            SelectOutputAfterTemplate = Between(selectTemplate, "<before>", "</before>");
         }
 
         public DatabaseElementConfiguration GetDatabaseSetting(string database) => _configSection.Databases.FirstOrDefault(p => p.Name == database);

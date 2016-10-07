@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using log4net;
 using SqlDb.Baseline.ConfigSections;
+using SqlDb.Baseline.Helpers;
 
 namespace SqlDb.Baseline
 {
@@ -14,6 +16,8 @@ namespace SqlDb.Baseline
                 Console.Out.WriteLine("Do you want to create 'Select' or 'Insert' output file ? (type s or i)");
                 var output = Console.ReadLine();
                 
+                LogFile.HeaderH1($"Start Execution at {DateTime.Now}");
+                   
                 var configurations = new AppConfiguration();
                 foreach (var database in configurations.Databases)
                 {
@@ -22,6 +26,7 @@ namespace SqlDb.Baseline
                         continue;
 
                     SummaryRecorder.Switch(database);
+                    LogFile.HeaderH2($"Start Processing '{database}'");
                     Logger.LogInfo($"Start Processing '{database}'");
                     Logger.SetIndent();
 
@@ -31,15 +36,16 @@ namespace SqlDb.Baseline
                     Logger.ResetAllIndent();
                     Logger.LogInfo($"Complete Processing '{database}'");
                 }
-                var sum = SummaryRecorder.Summaries;
+
+                SummaryRecorder.Print();
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex.Message);
+                LogFile.Error(ex);
             }
         }
     }
-
+    
     public static class Logger
     {
         private static readonly ConsoleLogger _logger = new ConsoleLogger();
@@ -108,35 +114,5 @@ namespace SqlDb.Baseline
             WriteLine(LogType.Info,message, args);
             return Console.ReadLine();
         }
-    }
-
-    public static class SummaryRecorder
-    {
-        public static readonly IList<Summary> Summaries = new List<Summary>();
-        public static Summary Current { get; private set; }
-
-        public static Summary Switch(string database)
-        {
-            Summaries.Add(Current = new Summary(database));
-            return Current;
-        }
-    }
-
-    public class Summary
-    {
-        public Summary(string database)
-        {
-            Database = database;
-        }
-
-        public string Database { get; private set; }
-        public int TableCount { get; set; }
-        public int ViewCount { get; set; }
-
-        public int DatabaseRelationCount { get; set; }
-        public int CustomDatabaseRelationCount { get; set; }
-
-        public int IgnoreTableCount { get; set; }
-        public int MigrationTableCount { get; set; }
     }
 }

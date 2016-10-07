@@ -25,10 +25,7 @@ GO
 sp_msforeachtable 'ALTER TABLE ? ENABLE TRIGGER all'
 GO
 sp_msforeachtable 'ALTER TABLE ? WITH CHECK CHECK CONSTRAINT all'
+GO
+print 'Finished';
 
 </after>
-
-
-
-
-
