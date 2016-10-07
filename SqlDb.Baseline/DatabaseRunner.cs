@@ -15,7 +15,7 @@ namespace SqlDb.Baseline
             _configuration = configuration.GetDatabaseSetting(database);
         }
 
-        public void Execute()
+        public void Execute(bool generateInsertScript)
         {
             var tables = new TableQuery(_configuration);
             Logger.LogInfo($"Total extracted tables and views - {tables.AllObjects.Count}");
@@ -29,7 +29,7 @@ namespace SqlDb.Baseline
 
             Logger.LogInfo("Generating baseline script");
             var query = new BaselineScriptGenerator(database, _appConfiguration, _configuration);
-            query.GenerateInsertScript = false;
+            query.GenerateInsertScript = generateInsertScript;
             query.Generate();
 
             Logger.LogInfo($"Baseline script path - '{_configuration.OutputLocation}'");

@@ -11,6 +11,9 @@ namespace SqlDb.Baseline
         {
             try
             {
+                Console.Out.WriteLine("Do you want to create 'Select' or 'Insert' output file ? (type s or i)");
+                var output = Console.ReadLine();
+                
                 var configurations = new AppConfiguration();
                 foreach (var database in configurations.Databases)
                 {
@@ -18,7 +21,7 @@ namespace SqlDb.Baseline
                     Logger.SetIndent();
 
                     using (var runner = new DatabaseRunner(configurations, database))
-                        runner.Execute();
+                        runner.Execute(output != "s");
 
                     Logger.ResetAllIndent();
                     Logger.LogInfo($"Complete Processing '{database}'");
