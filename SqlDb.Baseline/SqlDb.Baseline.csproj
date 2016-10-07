@@ -66,6 +66,10 @@
     <Compile Include="Models\InnerJoin.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="QueryCommand\InsertQueryCommand.cs" />
+    <Compile Include="QueryCommand\IQueryCommand.cs" />
+    <Compile Include="QueryCommand\BaseQueryCommand.cs" />
+    <Compile Include="QueryCommand\SelectQueryCommand.cs" />
     <Compile Include="Query\TableQuery.cs" />
     <Compile Include="Query\TableRelationshipQuery.cs" />
     <Compile Include="Models\DbTable.cs" />

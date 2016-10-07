@@ -1,6 +1,7 @@
 ﻿using System;
 using SqlDb.Baseline.ConfigSections;
 using SqlDb.Baseline.Query;
+using SqlDb.Baseline.QueryCommand;
 
 namespace SqlDb.Baseline
 {
@@ -25,8 +26,12 @@ namespace SqlDb.Baseline
             database.LoadRelations();
 
             Logger.LogInfo("Generating baseline script");
-            var query = new BaselineScriptGenerator(database, _appConfiguration, _configuration);
-            query.GenerateInsertScript = generateInsertScript;
+
+            var command = generateInsertScript
+                ? (IQueryCommand) new InsertQueryCommand(_appConfiguration, _configuration)
+                : new SelectQueryCommand(_appConfiguration, _configuration);
+
+            var query = new BaselineScriptGenerator(database, _appConfiguration, _configuration, command);
             query.Generate();
 
             Logger.LogInfo($"Baseline script path - '{_configuration.OutputLocation}'");

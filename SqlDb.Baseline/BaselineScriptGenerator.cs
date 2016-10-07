@@ -1,30 +1,30 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using SqlDb.Baseline.ConfigSections;
 using SqlDb.Baseline.Helpers;
 using SqlDb.Baseline.Models;
+using SqlDb.Baseline.Query;
+using SqlDb.Baseline.QueryCommand;
 
 namespace SqlDb.Baseline
 {
-    public class BaselineScriptGenerator : IScriptHandler
+    public class BaselineScriptGenerator
     {
         private readonly DatabaseParser _databaseParser;
-        private readonly IApplicationSetting _appSettings;
         private readonly DatabaseElementConfiguration _dbSettings;
+        private readonly IQueryCommand _command;
         private readonly List<DbTable> _missing = new List<DbTable>();
         private readonly List<string> _tableCovered = new List<string>();
         private readonly List<string> _tableSkipped = new List<string>();
 
         private FileWriter ScriptWriter => _dbSettings.ScriptLogger;
-        public bool GenerateInsertScript { get; set; } = true;
 
-        public BaselineScriptGenerator(DatabaseParser databaseParser, IApplicationSetting appSettings, DatabaseElementConfiguration dbSettings)
+        public BaselineScriptGenerator(DatabaseParser databaseParser, IApplicationSetting appSettings, DatabaseElementConfiguration dbSettings, IQueryCommand command)
         {
             _databaseParser = databaseParser;
-            _appSettings = appSettings;
             _dbSettings = dbSettings;
+            _command = command;
         }
 
         public void Generate()
@@ -33,19 +33,19 @@ namespace SqlDb.Baseline
             ScriptWriter.WriteLine("GO");
 
             ScriptWriter.AddHeader("Before Base Script");
-            ScriptWriter.WriteLine(GenerateInsertScript
-                ? _appSettings.InsertOutputBeforeTemplate
-                : _appSettings.SelectOutputBeforeTemplate);
+            ScriptWriter.WriteLine(_command.BeforeTemplate);
 
-            AppendLookupTableMigration();
-            CreateInsertStatementWithTree();
+            if (_command.ShouldMigrateLookupTable)
+                AppendLookupTableMigration();
+
+            if (_command.ShouldMigrateTransactionTable)
+                CreateInsertStatementWithTree();
+
             LogMissingFile();
             LogSkippedTables();
 
             ScriptWriter.AddHeader("After Base Script");
-            ScriptWriter.WriteLine(GenerateInsertScript
-                ? _appSettings.InsertOutputAfterTemplate
-                : _appSettings.SelectOutputAfterTemplate);
+            ScriptWriter.WriteLine(_command.AfterTemplate);
 
             SummaryRecorder.Current.IgnoreTableCount = _missing.Count;
             SummaryRecorder.Current.MigrationTableCount = _tableCovered.Count;
@@ -61,7 +61,7 @@ namespace SqlDb.Baseline
                 if (ShouldSkipTable(table.FullName))
                     continue;
 
-                var builder = new QueryBuilder(table,this);
+                var builder = new QueryBuilder(table, _command);
                 BuildInsertStatement(tree.Value, 1, builder, new List<InnerJoin>());
 
                 if (!builder.HasMappedEmployer)
@@ -137,8 +137,7 @@ namespace SqlDb.Baseline
                 var statement = CreateInsert(table, _dbSettings.TargetDatabase, "a");
                 statement = InjectQuery(tableCounter, table, statement);
 
-                if (!GenerateInsertScript)
-                    ScriptWriter.WriteLine(statement);
+                ScriptWriter.WriteLine(statement);
                 _tableCovered.Add(table.FullName);
                 migrated = true;
 
@@ -150,34 +149,12 @@ namespace SqlDb.Baseline
 
         public string CreateInsert(DbTable targetTable, string targetDb, string alias, bool excludeInsert = false)
         {
-            var builder = new StringBuilder();
-            if (!excludeInsert && GenerateInsertScript)
-                builder.AppendLine($"INSERT INTO {targetDb}.{targetTable.FullName} ({targetTable.Csv()})");
-
-            builder.AppendLine(GenerateInsertScript ? $"SELECT {targetTable.Csv(alias)}" : $"SELECT Count(1) as '{targetTable.FullName}'");
-            builder.AppendLine($"FROM {targetTable.FullName} {alias}");
-            return builder.ToString();
+            return _command.CreateQuery(targetTable, targetDb, alias, excludeInsert);
         }
 
         private string InjectQuery(int counter, DbTable table, string statement)
         {
-            var statementBuilder = new StringBuilder();
-            if (table.HasIdentiyColumn && GenerateInsertScript)
-                statementBuilder.AppendLine($"SET IDENTITY_INSERT {_dbSettings.TargetDatabase}.{table.FullName} ON");
-            statementBuilder.AppendLine(statement);
-            if (table.HasIdentiyColumn && GenerateInsertScript)
-                statementBuilder.AppendLine($"SET IDENTITY_INSERT {_dbSettings.TargetDatabase}.{table.FullName} OFF");
-            
-            var builder = new StringBuilder();
-            builder.AppendLine($"-- ***** [{counter}] Migrating {table.FullName} ***** ");
-
-            builder.AppendLine(GenerateInsertScript
-                ? _appSettings.TableTemplate(table, statementBuilder.ToString())
-                : statementBuilder.ToString());
-
-            builder.AppendLine("".PadRight(50, '-'));
-            builder.AppendLine("");
-            return builder.ToString();
+            return _command.InjectQuery(counter, table, statement);
         }
         
         private bool ShouldSkipTable(string tablename)
@@ -227,10 +204,4 @@ namespace SqlDb.Baseline
                 LogFile.Info($"   {i+1}. {_tableSkipped[i]}");
         }
     }
-
-    public interface IScriptHandler
-    {
-        string CreateInsert(DbTable targetTable, string targetDb, string alias, bool excludeInsert = false);
-    }
-
 }
