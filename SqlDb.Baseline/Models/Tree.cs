@@ -22,6 +22,7 @@ namespace SqlDb.Baseline.Models
     }
     public class Tree
     {
+        public int Height { get; set; }
         public DbTable Table { get; set; }
         public IList<NodeRelation> Childrens { get; set; }
 
@@ -57,7 +58,7 @@ namespace SqlDb.Baseline.Models
 
         public override string ToString()
         {
-            return Table.ToString();
+            return $"[{Height}] - {Table}";
         }
     }
 }

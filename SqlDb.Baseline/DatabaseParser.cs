@@ -1,4 +1,7 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using SqlDb.Baseline.ConfigSections;
 using SqlDb.Baseline.Helpers;
@@ -39,25 +42,35 @@ namespace SqlDb.Baseline
             AppendRelationWhichCanLinkToEmployer();
 
             foreach (var tree in TreeRelations.Values)
-                CreateRelationalGraph(tree);
+                CreateRelationalGraph(tree,tree, 1);
         }
 
         #region --- Private Methods ----
         
-        private void CreateRelationalGraph(Tree target)
+        private void CreateRelationalGraph(Tree root,Tree target, int level)
         {
             var relations = _relations.GetParentTables(target.Table.FullName);
             foreach (var relation in relations)
             {
+                if (level > 10)
+                    return;
+
                 var rTable = Tables.GetTable(relation.PrimaryTable);
                 var rTree = target.AddRelation(relation.PrimaryKey, rTable, relation.ForeignKey);
-                if (rTree != null)
-                    CreateRelationalGraph(rTree);
+                if (rTree == null || rTable.HasEmployerId)
+                    continue;
+
+                level = level + 1;
+                if (root.Height < level)
+                    root.Height = level;
+
+                CreateRelationalGraph(root,rTree, level);
             }
         }
           
         private void AppendRelationWhichCanLinkToEmployer()
         {
+            AddPossibleRelationships();
             PrintSqlRelationStats();
 
             var counter = 0;
@@ -83,6 +96,20 @@ namespace SqlDb.Baseline
             if(!foundRelation)
                 EventLogger.WriteLine("     No relation found");
             EventLogger.NewLine();
+        }
+        
+        private void AddPossibleRelationships()
+        {
+            foreach (var table in Tables.OnlyTables.Values)
+            {
+                if(table.PrimaryKey.Equals("id",StringComparison.CurrentCultureIgnoreCase))
+                    continue;
+
+                if (_dbSettings.TableToEmployerMappers.Any(p => p.Table == table.FullName && p.Column == table.PrimaryKey))
+                    continue;
+
+                _dbSettings.TableToEmployerMappers.Add(new TableColumn(table.FullName,table.PrimaryKey));
+            }
         }
 
         private void PrintSqlRelationStats()
