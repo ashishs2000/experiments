@@ -47,6 +47,7 @@ namespace SqlDb.Baseline.ConfigSections
         [ConfigurationProperty("", IsDefaultCollection = true)]
         public MappingConfigurationCollection Mappings => (MappingConfigurationCollection)base[""];
 
+        public string OutputLocation { get; private set; }
         public FileWriter ScriptLogger { get; private set; }
         public FileWriter EventLogger { get; private set; }
         public IList<TableColumn> TableToEmployerMappers { get; set; }
@@ -95,7 +96,8 @@ namespace SqlDb.Baseline.ConfigSections
             if (!Directory.Exists(location))
                 Directory.CreateDirectory(location);
 
-            streamAction(Path.Combine(location, fileName));
+            OutputLocation = Path.Combine(location, fileName);
+            streamAction(OutputLocation);
         }
     }
 

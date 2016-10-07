@@ -31,7 +31,7 @@ namespace SqlDb.Baseline
             var query = new BaselineScriptGenerator(database, _appConfiguration, _configuration);
             query.Generate();
 
-            Logger.LogInfo($"Baseline script path - '{_configuration.OutputFile}'");
+            Logger.LogInfo($"Baseline script path - '{_configuration.OutputLocation}'");
         }
 
         public void Dispose()

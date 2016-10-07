@@ -107,9 +107,11 @@ namespace SqlDb.Baseline
                 if (lastPercentReported == percentCompleted || percentCompleted%20 != 0)
                     continue;
 
+                Console.ForegroundColor = ConsoleColor.Green;
                 Console.Write($" {percentCompleted}%  ");
                 lastPercentReported = percentCompleted;
             }
+            Console.ResetColor();
             Console.Out.WriteLine("");
 
             Logger.LogInfo($"Total possible relationships found - {foundRelations}");
