@@ -29,6 +29,7 @@ namespace SqlDb.Baseline
 
             Logger.LogInfo("Generating baseline script");
             var query = new BaselineScriptGenerator(database, _appConfiguration, _configuration);
+            query.GenerateInsertScript = false;
             query.Generate();
 
             Logger.LogInfo($"Baseline script path - '{_configuration.OutputLocation}'");

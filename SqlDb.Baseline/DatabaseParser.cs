@@ -13,10 +13,10 @@ namespace SqlDb.Baseline
     public class DatabaseParser
     {
         private readonly DatabaseElementConfiguration _dbSettings;
-        private readonly TableRelationshipQuery _relations;
 
         public Dictionary<string, Tree> TreeRelations { get; } = new Dictionary<string, Tree>();
         public TableQuery Tables { get; }
+        public TableRelationshipQuery TableRelations { get; }
 
         public int TablesCount => Tables.OnlyTables.Values.Count();
         private FileWriter EventLogger => _dbSettings.EventLogger;
@@ -24,7 +24,7 @@ namespace SqlDb.Baseline
         public DatabaseParser(TableQuery tables, TableRelationshipQuery relations, DatabaseElementConfiguration dbSettings)
         {
             this.Tables = tables;
-            this._relations = relations;
+            this.TableRelations = relations;
             _dbSettings = dbSettings;
 
             foreach (var table in Tables.OnlyTables)
@@ -35,7 +35,7 @@ namespace SqlDb.Baseline
         {
             EventLogger.AddHeader("Extracted Information");
             EventLogger.WriteLine($"    Total Tables : {Tables.OnlyTables.Count}");
-            EventLogger.WriteLine($"    Total Mapped Relations : {_relations.Relationships.Count}");
+            EventLogger.WriteLine($"    Total Mapped Relations : {TableRelations.Relationships.Count}");
             EventLogger.WriteLine($"    Total Custom Relations : {_dbSettings.TableToEmployerMappers.Count}");
             EventLogger.NewLine();
 
@@ -49,7 +49,7 @@ namespace SqlDb.Baseline
         
         private void CreateRelationalGraph(Tree root,Tree target, int level)
         {
-            var relations = _relations.GetParentTables(target.Table.FullName);
+            var relations = TableRelations.GetParentTables(target.Table.FullName);
             foreach (var relation in relations)
             {
                 if (level > 10)
@@ -99,7 +99,7 @@ namespace SqlDb.Baseline
 
                     counter++;
                     EventLogger.WriteLine($"    {counter}. '{table.FullName}' and '{mapper.Table}'");
-                    if(_relations.AddNewRelation(mapper.Table, mapper.Column, table.FullName, mapper.Column))
+                    if(TableRelations.AddNewRelation(mapper.Table, mapper.Column, table.FullName, mapper.Column))
                         foundRelations++;
                 }
 
@@ -141,10 +141,10 @@ namespace SqlDb.Baseline
         private void PrintSqlRelationStats()
         {
             EventLogger.AddHeader($"Following relationship exists in '{_dbSettings.Name}'");
-            if (_relations.Relationships.Any())
+            if (TableRelations.Relationships.Any())
             {
                 var counter = 0;
-                foreach (var relation in _relations.Relationships)
+                foreach (var relation in TableRelations.Relationships)
                 {
                     counter++;
                     EventLogger.WriteLine($"    {counter}. '{relation.PrimaryTable}' and '{relation.ForeignTable}'");

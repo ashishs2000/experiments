@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -9,17 +8,18 @@ using SqlDb.Baseline.Models;
 
 namespace SqlDb.Baseline
 {
-    public class BaselineScriptGenerator
+    public class BaselineScriptGenerator : IScriptHandler
     {
         private readonly DatabaseParser _databaseParser;
         private readonly IApplicationSetting _appSettings;
         private readonly DatabaseElementConfiguration _dbSettings;
         private readonly List<DbTable> _missing = new List<DbTable>();
         private readonly List<string> _tableCovered = new List<string>();
-        private readonly List<string> _tableSkipped = new List<string>(); 
+        private readonly List<string> _tableSkipped = new List<string>();
 
         private FileWriter ScriptWriter => _dbSettings.ScriptLogger;
         private FileWriter EventLogger => _dbSettings.EventLogger;
+        public bool GenerateInsertScript { get; set; } = true;
 
         public BaselineScriptGenerator(DatabaseParser databaseParser, IApplicationSetting appSettings, DatabaseElementConfiguration dbSettings)
         {
@@ -33,16 +33,29 @@ namespace SqlDb.Baseline
             ScriptWriter.WriteLine($"Use {_dbSettings.Name}");
             ScriptWriter.WriteLine("GO");
 
-            ScriptWriter.AddHeader("Before Base Script");
-            ScriptWriter.WriteLine(_appSettings.OutputFileBeforeData);
+            if (GenerateInsertScript)
+            {
+                ScriptWriter.AddHeader("Before Base Script");
+                ScriptWriter.WriteLine(_appSettings.OutputFileBeforeData);
+            }
+            else
+            {
+                ScriptWriter.AddHeader("Before Base Script");
+                ScriptWriter.WriteLine("DECLARE @EmployerIds table (EmployerId int)");
+                ScriptWriter.WriteLine("INSERT INTO @EmployerIds(EmployerId)");
+                ScriptWriter.WriteLine("SELECT 1470");
+            }
 
             AppendLookupTableMigration();
             CreateInsertStatementWithTree();
             LogMissingFile();
             LogSkippedTables();
 
-            ScriptWriter.AddHeader("After Base Script");
-            ScriptWriter.WriteLine(_appSettings.OutputFileAfterData);
+            if (GenerateInsertScript)
+            {
+                ScriptWriter.AddHeader("After Base Script");
+                ScriptWriter.WriteLine(_appSettings.OutputFileAfterData);
+            }
         }
 
         private void CreateInsertStatementWithTree()
@@ -55,7 +68,7 @@ namespace SqlDb.Baseline
                 if (ShouldSkipTable(table.FullName))
                     continue;
 
-                var builder = new QueryBuilder(table);
+                var builder = new QueryBuilder(table,this);
                 BuildInsertStatement(tree.Value, 1, builder, new List<InnerJoin>());
 
                 if (!builder.HasMappedEmployer)
@@ -90,19 +103,27 @@ namespace SqlDb.Baseline
 
             foreach (var children in joinTree.Childrens)
             {
-                if(children.RightTree == null)
+                if(children.RightTree == null || !joinTree.Table.HasColumn(children.LeftKey))
                     continue;
+
                 var cAlias = $"a{aliasCounter = aliasCounter + 1}";
 
                 var innerJoin = new InnerJoin();
                 innerJoin.LeftCondition(children.LeftKey, pAlias);
-                innerJoin.RightCondition(children.RightTree.Table.FullName, children.RightKey, cAlias);
+
+                var rightKey = ResolveRightKey(children.RightKey,children.RightTree.Table);
+                innerJoin.RightCondition(children.RightTree.Table.FullName, rightKey, cAlias);
 
                 joins.Add(innerJoin);
                 BuildInsertStatement(children.RightTree, aliasCounter, queryBuilder, joins);
 
                 joins.RemoveAt(joins.Count - 1);
             }
+        }
+
+        private string ResolveRightKey(string rightKey, DbTable rightTable)
+        {
+            return rightTable.HasColumn(rightKey) ? rightKey : rightTable.PrimaryKey;
         }
 
         private void AppendLookupTableMigration()
@@ -122,19 +143,21 @@ namespace SqlDb.Baseline
                 var statement = CreateInsert(table, _dbSettings.TargetDatabase, "a");
                 statement = InjectQuery(tableCounter, table, statement);
 
-                ScriptWriter.WriteLine(statement);
+                if (!GenerateInsertScript)
+                    ScriptWriter.WriteLine(statement);
                 _tableCovered.Add(table.FullName);
 
                 tableCounter++;
             }
         }
 
-        private string CreateInsert(DbTable targetTable, string targetDb, string alias, bool excludeInsert = false)
+        public string CreateInsert(DbTable targetTable, string targetDb, string alias, bool excludeInsert = false)
         {
             var builder = new StringBuilder();
-            if (!excludeInsert)
+            if (!excludeInsert && GenerateInsertScript)
                 builder.AppendLine($"INSERT INTO {targetDb}.{targetTable.FullName} ({targetTable.Csv()})");
-            builder.AppendLine($"SELECT {targetTable.Csv(alias)}");
+
+            builder.AppendLine(GenerateInsertScript ? $"SELECT {targetTable.Csv(alias)}" : $"SELECT Count(1) as '{targetTable.FullName}'");
             builder.AppendLine($"FROM {targetTable.FullName} {alias}");
             return builder.ToString();
         }
@@ -142,15 +165,19 @@ namespace SqlDb.Baseline
         private string InjectQuery(int counter, DbTable table, string statement)
         {
             var statementBuilder = new StringBuilder();
-            if (table.HasIdentiyColumn)
+            if (table.HasIdentiyColumn && GenerateInsertScript)
                 statementBuilder.AppendLine($"SET IDENTITY_INSERT {_dbSettings.TargetDatabase}.{table.FullName} ON");
             statementBuilder.AppendLine(statement);
-            if (table.HasIdentiyColumn)
+            if (table.HasIdentiyColumn && GenerateInsertScript)
                 statementBuilder.AppendLine($"SET IDENTITY_INSERT {_dbSettings.TargetDatabase}.{table.FullName} OFF");
-
+            
             var builder = new StringBuilder();
             builder.AppendLine($"-- ***** [{counter}] Migrating {table.FullName} ***** ");
-            builder.AppendLine(_appSettings.TableTemplate(table, statementBuilder.ToString()));
+
+            builder.AppendLine(GenerateInsertScript
+                ? _appSettings.TableTemplate(table, statementBuilder.ToString())
+                : statementBuilder.ToString());
+
             builder.AppendLine("".PadRight(50, '-'));
             builder.AppendLine("");
             return builder.ToString();
@@ -205,4 +232,10 @@ namespace SqlDb.Baseline
             EventLogger.NewLine();
         }
     }
+
+    public interface IScriptHandler
+    {
+        string CreateInsert(DbTable targetTable, string targetDb, string alias, bool excludeInsert = false);
+    }
+
 }

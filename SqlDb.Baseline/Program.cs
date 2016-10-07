@@ -28,11 +28,6 @@ namespace SqlDb.Baseline
             {
                 Logger.LogError(ex.Message);
             }
-            finally
-            {
-                Logger.LogInfo("Press any key to exit.");
-                Console.ReadKey();
-            }
         }
     }
 
