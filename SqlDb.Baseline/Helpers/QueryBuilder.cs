@@ -11,7 +11,7 @@ namespace SqlDb.Baseline.Helpers
         private readonly IQueryCommand _command;
         private readonly Dictionary<int, List<InnerJoin>> _innerJoinsMap = new Dictionary<int, List<InnerJoin>>();
 
-        private int key = 1;
+        private int _key = 1;
         public bool HasMappedEmployer { get; private set; }
         public QueryBuilder(DbTable table, IQueryCommand command)
         {
@@ -23,14 +23,14 @@ namespace SqlDb.Baseline.Helpers
         {
             HasMappedEmployer = true;
 
-            if (!_innerJoinsMap.ContainsKey(key))
-                _innerJoinsMap.Add(key, new List<InnerJoin>());
+            if (!_innerJoinsMap.ContainsKey(_key))
+                _innerJoinsMap.Add(_key, new List<InnerJoin>());
 
             var employerJoin = JoinWithEmployer(employerTableAlias);
 
-            _innerJoinsMap[key].AddRange(innerJoins);
-            _innerJoinsMap[key].Add(employerJoin);
-            key = key + 1;
+            _innerJoinsMap[_key].AddRange(innerJoins);
+            _innerJoinsMap[_key].Add(employerJoin);
+            _key = _key + 1;
         }
 
         private InnerJoin JoinWithEmployer(string leftAlias)

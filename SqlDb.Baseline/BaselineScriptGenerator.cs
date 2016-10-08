@@ -4,7 +4,6 @@ using System.Text.RegularExpressions;
 using SqlDb.Baseline.ConfigSections;
 using SqlDb.Baseline.Helpers;
 using SqlDb.Baseline.Models;
-using SqlDb.Baseline.Query;
 using SqlDb.Baseline.QueryCommand;
 
 namespace SqlDb.Baseline
@@ -20,7 +19,7 @@ namespace SqlDb.Baseline
 
         private FileWriter ScriptWriter => _dbSettings.ScriptLogger;
 
-        public BaselineScriptGenerator(DatabaseParser databaseParser, IApplicationSetting appSettings, DatabaseElementConfiguration dbSettings, IQueryCommand command)
+        public BaselineScriptGenerator(DatabaseParser databaseParser, DatabaseElementConfiguration dbSettings, IQueryCommand command)
         {
             _databaseParser = databaseParser;
             _dbSettings = dbSettings;

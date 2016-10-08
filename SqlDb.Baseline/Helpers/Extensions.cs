@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.Data.Entity.Design.PluralizationServices;
 using System.Data.SqlClient;
 using System.Globalization;
-using System.IO;
 
 namespace SqlDb.Baseline.Helpers
 {
     public static class Extensions
     {
-        private static readonly PluralizationService EnglishService = System.Data.Entity.Design.PluralizationServices.PluralizationService.CreateService(CultureInfo.GetCultureInfo("en-us"));
+        private static readonly PluralizationService EnglishService = PluralizationService.CreateService(CultureInfo.GetCultureInfo("en-us"));
 
         public static void Execute(this SqlConnection connection, string query, Action<SqlDataReader> extract)
         {

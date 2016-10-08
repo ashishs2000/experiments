@@ -10,7 +10,7 @@ namespace SqlDb.Baseline
         private readonly AppConfiguration _appConfiguration;
         private readonly DatabaseElementConfiguration _configuration;
 
-        public DatabaseRunner(AppConfiguration configuration, DatabaseElementConfiguration dbConfiguration, string database)
+        public DatabaseRunner(AppConfiguration configuration, DatabaseElementConfiguration dbConfiguration)
         {
             _appConfiguration = configuration;
             _configuration = dbConfiguration;
@@ -29,9 +29,9 @@ namespace SqlDb.Baseline
 
             var command = generateInsertScript
                 ? (IQueryCommand) new InsertQueryCommand(_appConfiguration, _configuration)
-                : new SelectQueryCommand(_appConfiguration, _configuration);
+                : new SelectQueryCommand(_appConfiguration);
 
-            var query = new BaselineScriptGenerator(database, _appConfiguration, _configuration, command);
+            var query = new BaselineScriptGenerator(database, _configuration, command);
             query.Generate();
 
             Logger.LogInfo($"Baseline script path - '{_configuration.OutputLocation}'");

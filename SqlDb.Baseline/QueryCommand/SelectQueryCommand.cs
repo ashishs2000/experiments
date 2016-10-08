@@ -6,18 +6,12 @@ namespace SqlDb.Baseline.QueryCommand
 {
     public class SelectQueryCommand : BaseQueryCommand
     {
-        private readonly IApplicationSetting _appSettings;
-        private readonly DatabaseElementConfiguration _dbSettings;
-
         public override string BeforeTemplate { get; }
         public override string AfterTemplate { get; }
 
-        public SelectQueryCommand(IApplicationSetting appSettings, DatabaseElementConfiguration dbConfiguration)
+        public SelectQueryCommand(IApplicationSetting appSettings)
             : base(appSettings)
         {
-            _appSettings = appSettings;
-            _dbSettings = dbConfiguration;
-
             BeforeTemplate = appSettings.SelectOutputBeforeTemplate;
             AfterTemplate = appSettings.SelectOutputAfterTemplate;
         }

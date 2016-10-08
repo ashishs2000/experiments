@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using log4net;
 using SqlDb.Baseline.ConfigSections;
 using SqlDb.Baseline.Helpers;
 
@@ -30,7 +29,7 @@ namespace SqlDb.Baseline
                     Logger.LogInfo($"Start Processing '{database}'");
                     Logger.SetIndent();
 
-                    using (var runner = new DatabaseRunner(configurations, dbConfiguration, database))
+                    using (var runner = new DatabaseRunner(configurations, dbConfiguration))
                         runner.Execute(output != "s");
 
                     Logger.ResetAllIndent();
