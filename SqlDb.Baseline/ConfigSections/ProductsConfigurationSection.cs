@@ -62,7 +62,12 @@ namespace SqlDb.Baseline.ConfigSections
 
         public void ParseAndLoad(IApplicationSetting applicationSetting)
         {
-            SetupFileStream(OutputFile, applicationSetting.OutputLocation, $"{Name}.sql", fileName => ScriptLogger = new FileWriter(fileName));
+            var commandSuffix = applicationSetting.CommandType == CommandType.Select ? "select" : "insert";
+            var outputname = $"{Name}.{commandSuffix}.sql";
+            if (!string.IsNullOrEmpty(OutputFile))
+                outputname = $"{OutputFile}.{commandSuffix}.sql";
+
+            SetupFileStream(outputname, applicationSetting.OutputLocation , fileName => ScriptLogger = new FileWriter(fileName));
 
             foreach (MappingElement mapping in Mappings)
             {
@@ -86,11 +91,8 @@ namespace SqlDb.Baseline.ConfigSections
             }
         }
 
-        private void SetupFileStream(string fileName, string location, string defaultFileName, Action<string> streamAction)
+        private void SetupFileStream(string fileName, string location, Action<string> streamAction)
         {
-            if (string.IsNullOrEmpty(fileName))
-                fileName = defaultFileName;
-
             if (!Directory.Exists(location))
                 Directory.CreateDirectory(location);
 

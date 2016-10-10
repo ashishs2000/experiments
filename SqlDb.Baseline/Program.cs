@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using SqlDb.Baseline.ConfigSections;
 using SqlDb.Baseline.Helpers;
 
@@ -12,12 +13,11 @@ namespace SqlDb.Baseline
         {
             try
             {
-                Console.Out.WriteLine("Do you want to create 'Select' or 'Insert' output file ? (type s or i)");
-                var output = Console.ReadLine();
-                
+                var command = GetCommand(args);
+
                 LogFile.HeaderH1($"Start Execution at {DateTime.Now}");
                    
-                var configurations = new AppConfiguration();
+                var configurations = new AppConfiguration(command);
                 foreach (var database in configurations.Databases)
                 {
                     var dbConfiguration = configurations.GetDatabaseSetting(database);
@@ -30,7 +30,7 @@ namespace SqlDb.Baseline
                     Logger.SetIndent();
 
                     using (var runner = new DatabaseRunner(configurations, dbConfiguration))
-                        runner.Execute(output != "s");
+                        runner.Execute(command == CommandType.Insert);
 
                     Logger.ResetAllIndent();
                     Logger.LogInfo($"Complete Processing '{database}'");
@@ -41,8 +41,27 @@ namespace SqlDb.Baseline
             catch (Exception ex)
             {
                 LogFile.Error(ex);
+                Console.Out.WriteLine(ex.Message);
             }
         }
+
+        private static CommandType GetCommand(IReadOnlyList<string> args)
+        {
+            if (args != null && args.Count > 0)
+                return Regex.IsMatch(args[0], "s.*", RegexOptions.IgnoreCase)
+                    ? CommandType.Select
+                    : CommandType.Insert;
+
+            Console.Out.WriteLine("Do you want to create 'Select' or 'Insert' output file ? (type s or i)");
+            var output = Console.ReadLine();
+            return output != "s" ? CommandType.Insert : CommandType.Select;
+        }
+    }
+
+    public enum CommandType
+    {
+        Insert,
+        Select
     }
     
     public static class Logger

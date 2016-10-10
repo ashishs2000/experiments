@@ -12,7 +12,7 @@ namespace SqlDb.Baseline.ConfigSections
         string InsertOutputAfterTemplate { get; }
         string SelectOutputBeforeTemplate { get; }
         string SelectOutputAfterTemplate { get; }
-
+        CommandType CommandType { get; }
         Func<DbTable, string, string> TableTemplate { get; }
         string OutputLocation { get; }
     }
@@ -27,11 +27,13 @@ namespace SqlDb.Baseline.ConfigSections
         public string SelectOutputAfterTemplate { get; }
         public Func<DbTable, string, string> TableTemplate { get; }
         public string OutputLocation { get; }
+        public CommandType CommandType { get; }
 
-        public AppConfiguration()
+        public AppConfiguration(CommandType commandType)
         {
             Logger.LogInfo("Reading Configurations");
 
+            CommandType = commandType;
             var template = ReadOrDefaultProperty("InsertTableTemplate", "");
 
             TableTemplate = (table, statement) =>
