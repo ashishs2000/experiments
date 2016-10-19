@@ -1,4 +1,9 @@
 ﻿<before>
+Use @database
+GO
+--------------------------------------------------
+-- Before Base Script
+--------------------------------------------------
 
 IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'Migrations' AND TABLE_NAME = 'Baseline')
 BEGIN
@@ -21,6 +26,8 @@ DECLARE @EmployerIds table (EmployerId int)
 </before>
 
 <body>
+	-- ***** [@counter] Migrating @tablename ***** 
+
 	IF NOT EXISTS (SELECT 1 FROM Migrations.Baseline WHERE TableName = '@tablename') 
 	BEGIN   
 		TRUNCATE TABLE @tablename    
@@ -28,11 +35,17 @@ DECLARE @EmployerIds table (EmployerId int)
 		INSERT INTO Migrations.Baseline(TableName,IsCompleted)   
 		SELECT '@tablename',1 
 	END
+
+	--------------------------------------------------
 </body>
 
 <after>
 
 GO
+--------------------------------------------------
+-- After Base Script
+--------------------------------------------------
+
 sp_msforeachtable 'ALTER TABLE ? ENABLE TRIGGER all'
 GO
 sp_msforeachtable 'ALTER TABLE ? WITH CHECK CHECK CONSTRAINT all'

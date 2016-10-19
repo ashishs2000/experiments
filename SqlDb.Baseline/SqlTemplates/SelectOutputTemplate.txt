@@ -4,6 +4,12 @@ INSERT INTO @EmployerIds(EmployerId)
 SELECT 1470
 </before>
 
+<body>
+	-- ***** [@counter] Migrating @tablename ***** 
+	@statement  
+	--------------------------------------------------
+</body>
+
 <after>
 print 'Finished';
 </after>

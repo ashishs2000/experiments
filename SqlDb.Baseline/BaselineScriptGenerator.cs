@@ -28,11 +28,7 @@ namespace SqlDb.Baseline
 
         public void Generate()
         {
-            ScriptWriter.WriteLine($"Use {_dbSettings.Name}");
-            ScriptWriter.WriteLine("GO");
-
-            ScriptWriter.AddHeader("Before Base Script");
-            ScriptWriter.WriteLine(_command.Template.Before);
+            ScriptWriter.WriteLine(_command.Template.Before(_dbSettings.Name));
 
             if (_command.ShouldMigrateLookupTable)
                 AppendLookupTableMigration();
@@ -43,7 +39,6 @@ namespace SqlDb.Baseline
             LogMissingFile();
             LogSkippedTables();
 
-            ScriptWriter.AddHeader("After Base Script");
             ScriptWriter.WriteLine(_command.Template.After);
 
             SummaryRecorder.Current.IgnoreTableCount = _missing.Count;

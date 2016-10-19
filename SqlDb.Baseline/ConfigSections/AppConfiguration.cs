@@ -34,23 +34,22 @@ namespace SqlDb.Baseline.ConfigSections
             Databases = _configSection.Databases.Select(p => p.Name).ToList();
 
             var intertTemplate = File.ReadAllText("SqlTemplates/InsertOutputTemplate.txt");
-            InsertTemplate = new SqlTemplate
-            {
-                Before = Between(intertTemplate, "<before>", "</before>"),
-                Statement = Between(intertTemplate, "<body>", "</body>"),
-                After = Between(intertTemplate, "<after>", "</after>")
-            };
+            InsertTemplate = Parse(intertTemplate);
 
             var selectTemplate = File.ReadAllText("SqlTemplates/SelectOutputTemplate.txt");
-            SelectTemplate = new SqlTemplate
-            {
-                Before = Between(selectTemplate, "<before>", "</before>"),
-                After = Between(selectTemplate, "<after>", "</after>")
-            };
+            SelectTemplate = Parse(selectTemplate);
         }
 
         public DatabaseElementConfiguration GetDatabaseSetting(string database) => _configSection.Databases.FirstOrDefault(p => p.Name == database);
-        
+
+        private static SqlTemplate Parse(string template)
+        {
+            var before = Between(template, "<before>", "</before>");
+            var statement = Between(template, "<body>", "</body>");
+            var after = Between(template, "<after>", "</after>");
+            return new SqlTemplate(before,statement,after);
+        }
+
         private static string Between(string target, string starttag, string endtag)
         {
             var pos1 = target.IndexOf(starttag, StringComparison.Ordinal) + starttag.Length;

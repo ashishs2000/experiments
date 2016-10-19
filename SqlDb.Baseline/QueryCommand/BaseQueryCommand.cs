@@ -24,13 +24,10 @@ namespace SqlDb.Baseline.QueryCommand
         public string InjectQuery(int counter, DbTable table, string statement)
         {
             var builder = new StringBuilder();
-            builder.AppendLine($"-- ***** [{counter}] Migrating {table.FullName} ***** ");
 
             statement = SurroundStatement(table, statement);
-            builder.AppendLine(Template.ToString(table, statement));
+            builder.AppendLine(Template.ToString(counter,table, statement));
 
-            builder.AppendLine("".PadRight(50, '-'));
-            builder.AppendLine("");
             return builder.ToString();
         }
     }
