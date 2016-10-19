@@ -32,7 +32,7 @@ namespace SqlDb.Baseline.Query
         public List<DbTableRelationship> Relationships { get; }
         public TableRelationshipQuery(DatabaseElementConfiguration configuration)
         {
-            var conString = ConfigurationManager.ConnectionStrings[configuration.Name].ConnectionString;
+            var conString = ConfigurationManager.ConnectionStrings[configuration.SourceDatabase].ConnectionString;
 
             Relationships = new List<DbTableRelationship>();
             var con = new SqlConnection(conString);

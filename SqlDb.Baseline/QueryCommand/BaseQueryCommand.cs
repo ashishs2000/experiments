@@ -9,7 +9,7 @@ namespace SqlDb.Baseline.QueryCommand
         private readonly IApplicationSetting _appSettings;
         
         public abstract string SurroundStatement(DbTable targetTable, string statement);
-        public abstract string CreateInitialStatement(DbTable targetTable, string targetDb, string alias);
+        public abstract string CreateInitialStatement(IDatabaseConfig databaseConfig, DbTable targetTable,string alias);
 
         public abstract SqlTemplate Template { get; set; }
 

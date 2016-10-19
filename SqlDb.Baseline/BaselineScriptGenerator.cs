@@ -28,7 +28,7 @@ namespace SqlDb.Baseline
 
         public void Generate()
         {
-            ScriptWriter.WriteLine(_command.Template.Before(_dbSettings.Name));
+            ScriptWriter.WriteLine(_command.Template.Before(_dbSettings.TargetDatabase));
 
             if (_command.ShouldMigrateLookupTable)
                 AppendLookupTableMigration();
@@ -60,7 +60,7 @@ namespace SqlDb.Baseline
                 if(table == null)
                     continue;
 
-                var statement =  _command.CreateInitialStatement(table, _dbSettings.TargetDatabase, "a");
+                var statement =  _command.CreateInitialStatement(_dbSettings,table, "a");
                 statement = _command.InjectQuery(tableCounter, table, statement);
 
                 ScriptWriter.Write(statement);
@@ -84,7 +84,7 @@ namespace SqlDb.Baseline
                 if (ShouldSkipTable(table.FullName))
                     continue;
 
-                var builder = new QueryBuilder(table, _command);
+                var builder = new QueryBuilder(_dbSettings,table, _command);
                 BuildInsertStatement(tree.Value, 1, builder, new List<InnerJoin>());
 
                 if (!builder.HasMappedEmployer)
@@ -124,7 +124,7 @@ namespace SqlDb.Baseline
 
                 var cAlias = $"a{aliasCounter = aliasCounter + 1}";
 
-                var innerJoin = new InnerJoin();
+                var innerJoin = new InnerJoin(_dbSettings);
                 innerJoin.LeftCondition(children.LeftKey, pAlias);
 
                 var rightKey = ResolveRightKey(children.RightKey, children.RightTree.Table);

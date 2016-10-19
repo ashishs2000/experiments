@@ -52,7 +52,7 @@ namespace SqlDb.Baseline.Query
 
         public TableQuery(DatabaseElementConfiguration configuration)
         {
-            var conString = ConfigurationManager.ConnectionStrings[configuration.Name].ConnectionString;
+            var conString = ConfigurationManager.ConnectionStrings[configuration.SourceDatabase].ConnectionString;
 
             var con = new SqlConnection(conString);
             con.Execute(TABLE_QUERY,AddTableInfo);

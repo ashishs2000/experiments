@@ -27,8 +27,7 @@ DECLARE @EmployerIds table (EmployerId int)
 
 <body>
 --- >>>> [@counter] Migrating @tablename <<<< --- 
-
-IF NOT EXISTS (SELECT 1 FROM Migrations.Baseline WHERE TableName = '@tablename') 
+IF EXISTS (SELECT 1 FROM Migrations.Baseline WHERE TableName = '@tablename') 
 BEGIN   
 	TRUNCATE TABLE @tablename    
 
@@ -38,7 +37,7 @@ BEGIN
 	SELECT '@tablename',1 
 END
 
---------------------------------------------------
+GO
 </body>
 
 <after>

@@ -131,7 +131,7 @@ namespace SqlDb.Baseline
 
         private void PrintSqlRelationStats()
         {
-            LogFile.HeaderH3($"Following relationship exists in '{_dbSettings.Name}'");
+            LogFile.HeaderH3($"Following relationship exists in '{_dbSettings.SourceDatabase}'");
             if (TableRelations.Relationships.Any())
             {
                 var counter = 0;

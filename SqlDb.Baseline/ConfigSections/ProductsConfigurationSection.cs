@@ -27,13 +27,13 @@ namespace SqlDb.Baseline.ConfigSections
     public class DatabaseConfigurationCollection : ConfigurationElementCollection
     {
         protected override ConfigurationElement CreateNewElement() => new DatabaseElementConfiguration();
-        protected override object GetElementKey(ConfigurationElement element) => ((DatabaseElementConfiguration)(element)).Name;
+        protected override object GetElementKey(ConfigurationElement element) => ((DatabaseElementConfiguration)(element)).SourceDatabase;
     }
 
-    public class DatabaseElementConfiguration : ConfigurationElement
+    public class DatabaseElementConfiguration : ConfigurationElement, IDatabaseConfig
     {
         [ConfigurationProperty("name", IsRequired = true, IsKey = true)]
-        public string Name => this["name"].ToString();
+        public string SourceDatabase => this["name"].ToString();
 
         [ConfigurationProperty("target")]
         public string TargetDatabase => this["target"].ToString();
@@ -63,7 +63,7 @@ namespace SqlDb.Baseline.ConfigSections
         public void ParseAndLoad(IApplicationSetting applicationSetting)
         {
             var commandSuffix = applicationSetting.CommandType == CommandType.Select ? "select" : "insert";
-            var outputname = $"{Name}.{commandSuffix}.sql";
+            var outputname = $"{SourceDatabase}.{commandSuffix}.sql";
             if (!string.IsNullOrEmpty(OutputFile))
                 outputname = $"{OutputFile}.{commandSuffix}.sql";
 
@@ -111,5 +111,11 @@ namespace SqlDb.Baseline.ConfigSections
 
         public string Table { get; private set; }
         public string Column { get; private set; }
+    }
+
+    public interface IDatabaseConfig
+    {
+        string SourceDatabase { get; }
+        string TargetDatabase { get; }
     }
 }

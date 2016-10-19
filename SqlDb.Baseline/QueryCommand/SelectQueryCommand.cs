@@ -19,7 +19,7 @@ namespace SqlDb.Baseline.QueryCommand
             return statement;
         }
 
-        public override string CreateInitialStatement(DbTable targetTable, string targetDb, string alias)
+        public override string CreateInitialStatement(IDatabaseConfig config, DbTable targetTable, string alias)
         {
             var builder = new StringBuilder();
 

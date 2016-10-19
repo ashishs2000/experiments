@@ -31,7 +31,7 @@ namespace SqlDb.Baseline.ConfigSections
             OutputLocation = ReadOrDefaultProperty("OutputLocation", "Output");
 
             _configSection = ProductsConfigurationSection.GetConfiguration(this);
-            Databases = _configSection.Databases.Select(p => p.Name).ToList();
+            Databases = _configSection.Databases.Select(p => p.SourceDatabase).ToList();
 
             var intertTemplate = File.ReadAllText("SqlTemplates/InsertOutputTemplate.txt");
             InsertTemplate = Parse(intertTemplate);
@@ -40,7 +40,7 @@ namespace SqlDb.Baseline.ConfigSections
             SelectTemplate = Parse(selectTemplate);
         }
 
-        public DatabaseElementConfiguration GetDatabaseSetting(string database) => _configSection.Databases.FirstOrDefault(p => p.Name == database);
+        public DatabaseElementConfiguration GetDatabaseSetting(string database) => _configSection.Databases.FirstOrDefault(p => p.SourceDatabase == database);
 
         private static SqlTemplate Parse(string template)
         {

@@ -5,7 +5,7 @@ namespace SqlDb.Baseline.QueryCommand
 {
     public interface IQueryCommand
     {
-        string CreateInitialStatement(DbTable targetTable, string targetDb, string alias);
+        string CreateInitialStatement(IDatabaseConfig databaseConfig, DbTable targetTable, string alias);
 
         string InjectQuery(int counter, DbTable table, string statement);
 

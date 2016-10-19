@@ -34,13 +34,13 @@ namespace SqlDb.Baseline.QueryCommand
             return builder.ToString();
         }
 
-        public override string CreateInitialStatement(DbTable targetTable, string targetDb, string alias)
+        public override string CreateInitialStatement(IDatabaseConfig config, DbTable targetTable, string alias)
         {
             var builder = new StringBuilder();
 
-            builder.AppendLine($"INSERT INTO {targetDb}.{targetTable.FullName} ({targetTable.Csv()})");
+            builder.AppendLine($"INSERT INTO {config.TargetDatabase}.{targetTable.FullName} ({targetTable.Csv()})");
             builder.AppendLine($"SELECT {targetTable.Csv(alias)}");
-            builder.AppendLine($"FROM {targetTable.FullName} {alias}");
+            builder.AppendLine($"FROM {config.SourceDatabase}.{targetTable.FullName} {alias}");
 
             return builder.ToString();
         }

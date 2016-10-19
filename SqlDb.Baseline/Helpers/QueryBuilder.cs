@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text;
+using SqlDb.Baseline.ConfigSections;
 using SqlDb.Baseline.Models;
 using SqlDb.Baseline.QueryCommand;
 
@@ -7,14 +8,16 @@ namespace SqlDb.Baseline.Helpers
 {
     public class QueryBuilder
     {
+        private readonly IDatabaseConfig _config;
         private readonly DbTable _table;
         private readonly IQueryCommand _command;
         private readonly Dictionary<int, List<InnerJoin>> _innerJoinsMap = new Dictionary<int, List<InnerJoin>>();
 
         private int _key = 1;
         public bool HasMappedEmployer { get; private set; }
-        public QueryBuilder(DbTable table, IQueryCommand command)
+        public QueryBuilder(IDatabaseConfig config,DbTable table, IQueryCommand command)
         {
+            _config = config;
             _table = table;
             _command = command;
         }
@@ -35,7 +38,7 @@ namespace SqlDb.Baseline.Helpers
 
         private InnerJoin JoinWithEmployer(string leftAlias)
         {
-            var employerJoin = new InnerJoin();
+            var employerJoin = new InnerJoin(_config);
             employerJoin.LeftCondition("EmployerId", leftAlias);
             employerJoin.RightCondition("@EmployerIds", "EmployerId", "eids");
 
@@ -45,7 +48,7 @@ namespace SqlDb.Baseline.Helpers
         public override string ToString()
         {
             var query = new StringBuilder();
-            query.Append(_command.CreateInitialStatement(_table, "test", "a1"));
+            query.Append(_command.CreateInitialStatement(_config,_table, "a1"));
 
             var unionOn = false;
             foreach (var innerJoinMap in _innerJoinsMap)
