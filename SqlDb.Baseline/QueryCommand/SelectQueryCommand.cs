@@ -23,7 +23,7 @@ namespace SqlDb.Baseline.QueryCommand
         {
             var builder = new StringBuilder();
 
-            builder.AppendLine($"SELECT {targetTable.Csv(alias)}");
+            builder.AppendLine("SELECT count(1)");
             builder.AppendLine($"FROM {targetTable.FullName} {alias}");
 
             return builder.ToString();

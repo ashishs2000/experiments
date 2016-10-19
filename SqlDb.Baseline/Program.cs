@@ -52,9 +52,23 @@ namespace SqlDb.Baseline
                     ? CommandType.Select
                     : CommandType.Insert;
 
-            Console.Out.WriteLine("Do you want to create 'Select' or 'Insert' output file ? (type s or i)");
-            var output = Console.ReadLine();
-            return output != "s" ? CommandType.Insert : CommandType.Select;
+            Console.Out.WriteLine("Please select type of command");
+            Console.Out.WriteLine("     1. Select Statement");
+            Console.Out.WriteLine("     2. Insert Statement");
+            Console.Out.Write("Selected Option : ");
+            var output = Console.ReadKey();
+            Console.Out.WriteLine("");
+            switch (output.KeyChar)
+            {
+                case '1':
+                    return CommandType.Select;
+                case '2':
+                    return CommandType.Insert;
+                default:
+                    Console.Clear();
+                    Console.Out.WriteLine("Invalid Option selected");
+                    return GetCommand(args);
+            }
         }
     }
 

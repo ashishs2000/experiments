@@ -12,7 +12,7 @@ namespace SqlDb.Baseline.ConfigSections
         public SqlTemplate(string before, string statement, string after)
         {
             _before = before;
-            Statement = string.IsNullOrEmpty(statement) ? "@statement" : statement;
+            Statement = statement.Trim('\r', '\n');
             After = after;
         }
 

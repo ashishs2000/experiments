@@ -45,6 +45,35 @@ namespace SqlDb.Baseline
             SummaryRecorder.Current.MigrationTableCount = _tableCovered.Count;
         }
 
+        private void AppendLookupTableMigration()
+        {
+            var tableCounter = 1;
+            var migrated = false;
+            LogFile.HeaderH3("Lookup Table Migrations");
+
+            foreach (var tableName in _dbSettings.LookupTables)
+            {
+                if(ShouldSkipTable(tableName))
+                    continue;
+                
+                var table = _databaseParser.Tables.GetTable(tableName);
+                if(table == null)
+                    continue;
+
+                var statement =  _command.CreateInitialStatement(table, _dbSettings.TargetDatabase, "a");
+                statement = _command.InjectQuery(tableCounter, table, statement);
+
+                ScriptWriter.Write(statement);
+                _tableCovered.Add(table.FullName);
+                migrated = true;
+
+                tableCounter++;
+            }
+
+            if (migrated)
+                LogFile.Info("  No Lookup table found");
+        }
+
         private void CreateInsertStatementWithTree()
         {
             ScriptWriter.AddHeader("Transactional Table Migrations");
@@ -66,7 +95,7 @@ namespace SqlDb.Baseline
 
                 var statement = builder.ToString();
                 statement = _command.InjectQuery(tableCounter, table, statement);
-                ScriptWriter.WriteLine(statement);
+                ScriptWriter.Write(statement);
 
                 _tableCovered.Add(table.FullName);
                 tableCounter++;
@@ -75,7 +104,7 @@ namespace SqlDb.Baseline
 
         private void BuildInsertStatement(Tree joinTree, int aliasCounter, QueryBuilder queryBuilder, IList<InnerJoin> joins)
         {
-            if(joinTree.Table == null)
+            if (joinTree.Table == null)
                 return;
 
             var pAlias = $"a{aliasCounter}";
@@ -90,7 +119,7 @@ namespace SqlDb.Baseline
 
             foreach (var children in joinTree.Childrens)
             {
-                if(children.RightTree == null || !joinTree.Table.HasColumn(children.LeftKey))
+                if (children.RightTree == null || !joinTree.Table.HasColumn(children.LeftKey))
                     continue;
 
                 var cAlias = $"a{aliasCounter = aliasCounter + 1}";
@@ -98,7 +127,7 @@ namespace SqlDb.Baseline
                 var innerJoin = new InnerJoin();
                 innerJoin.LeftCondition(children.LeftKey, pAlias);
 
-                var rightKey = ResolveRightKey(children.RightKey,children.RightTree.Table);
+                var rightKey = ResolveRightKey(children.RightKey, children.RightTree.Table);
                 innerJoin.RightCondition(children.RightTree.Table.FullName, rightKey, cAlias);
 
                 joins.Add(innerJoin);
@@ -113,35 +142,6 @@ namespace SqlDb.Baseline
             return rightTable.HasColumn(rightKey) ? rightKey : rightTable.PrimaryKey;
         }
 
-        private void AppendLookupTableMigration()
-        {
-            var tableCounter = 1;
-            var migrated = false;
-            LogFile.HeaderH3("Lookup Table Migrations");
-
-            foreach (var tableName in _dbSettings.LookupTables)
-            {
-                if(ShouldSkipTable(tableName))
-                    continue;
-                
-                var table = _databaseParser.Tables.GetTable(tableName);
-                if(table == null)
-                    continue;
-
-                var statement =  _command.CreateInitialStatement(table, _dbSettings.TargetDatabase, "a");
-                statement = _command.InjectQuery(tableCounter, table, statement);
-
-                ScriptWriter.WriteLine(statement);
-                _tableCovered.Add(table.FullName);
-                migrated = true;
-
-                tableCounter++;
-            }
-
-            if (migrated)
-                LogFile.Info("  No Lookup table found");
-        }
-        
         private bool ShouldSkipTable(string tablename)
         {
             if (_dbSettings.SkipTables.Any(p => Regex.IsMatch(tablename, p, RegexOptions.IgnoreCase)))

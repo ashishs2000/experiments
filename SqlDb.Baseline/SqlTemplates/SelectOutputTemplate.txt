@@ -5,9 +5,8 @@ SELECT 1470
 </before>
 
 <body>
-	-- ***** [@counter] Migrating @tablename ***** 
-	@statement  
-	--------------------------------------------------
+-- ***** [@counter] Migrating @tablename ***** 
+@statement  
 </body>
 
 <after>

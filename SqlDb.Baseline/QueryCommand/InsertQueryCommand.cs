@@ -26,7 +26,7 @@ namespace SqlDb.Baseline.QueryCommand
             if (targetTable.HasIdentiyColumn)
                 builder.AppendLine($"SET IDENTITY_INSERT {_dbSettings.TargetDatabase}.{targetTable.FullName} ON");
 
-            builder.AppendLine(statement);
+            builder.AppendLine(statement.Trim());
 
             if (targetTable.HasIdentiyColumn)
                 builder.AppendLine($"SET IDENTITY_INSERT {_dbSettings.TargetDatabase}.{targetTable.FullName} OFF");
