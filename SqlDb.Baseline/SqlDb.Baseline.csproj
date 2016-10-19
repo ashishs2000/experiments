@@ -54,6 +54,7 @@
     <Compile Include="ConfigSections\ConfigurationReader.cs" />
     <Compile Include="ConfigSections\MappingConfigurationCollection.cs" />
     <Compile Include="ConfigSections\ProductsConfigurationSection.cs" />
+    <Compile Include="ConfigSections\SqlTemplate.cs" />
     <Compile Include="ConfigSections\TableToColumnCollection.cs" />
     <Compile Include="DatabaseParser.cs" />
     <Compile Include="DatabaseRunner.cs" />

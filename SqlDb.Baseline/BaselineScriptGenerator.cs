@@ -32,7 +32,7 @@ namespace SqlDb.Baseline
             ScriptWriter.WriteLine("GO");
 
             ScriptWriter.AddHeader("Before Base Script");
-            ScriptWriter.WriteLine(_command.BeforeTemplate);
+            ScriptWriter.WriteLine(_command.Template.Before);
 
             if (_command.ShouldMigrateLookupTable)
                 AppendLookupTableMigration();
@@ -44,7 +44,7 @@ namespace SqlDb.Baseline
             LogSkippedTables();
 
             ScriptWriter.AddHeader("After Base Script");
-            ScriptWriter.WriteLine(_command.AfterTemplate);
+            ScriptWriter.WriteLine(_command.Template.After);
 
             SummaryRecorder.Current.IgnoreTableCount = _missing.Count;
             SummaryRecorder.Current.MigrationTableCount = _tableCovered.Count;
@@ -70,7 +70,7 @@ namespace SqlDb.Baseline
                 }
 
                 var statement = builder.ToString();
-                statement = InjectQuery(tableCounter, table, statement);
+                statement = _command.InjectQuery(tableCounter, table, statement);
                 ScriptWriter.WriteLine(statement);
 
                 _tableCovered.Add(table.FullName);
@@ -133,8 +133,8 @@ namespace SqlDb.Baseline
                 if(table == null)
                     continue;
 
-                var statement = CreateInsert(table, _dbSettings.TargetDatabase, "a");
-                statement = InjectQuery(tableCounter, table, statement);
+                var statement =  _command.CreateInitialStatement(table, _dbSettings.TargetDatabase, "a");
+                statement = _command.InjectQuery(tableCounter, table, statement);
 
                 ScriptWriter.WriteLine(statement);
                 _tableCovered.Add(table.FullName);
@@ -142,18 +142,9 @@ namespace SqlDb.Baseline
 
                 tableCounter++;
             }
-            if(migrated)
+
+            if (migrated)
                 LogFile.Info("  No Lookup table found");
-        }
-
-        public string CreateInsert(DbTable targetTable, string targetDb, string alias, bool excludeInsert = false)
-        {
-            return _command.CreateQuery(targetTable, targetDb, alias, excludeInsert);
-        }
-
-        private string InjectQuery(int counter, DbTable table, string statement)
-        {
-            return _command.InjectQuery(counter, table, statement);
         }
         
         private bool ShouldSkipTable(string tablename)

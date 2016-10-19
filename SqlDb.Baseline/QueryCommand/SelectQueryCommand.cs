@@ -6,21 +6,26 @@ namespace SqlDb.Baseline.QueryCommand
 {
     public class SelectQueryCommand : BaseQueryCommand
     {
-        public override string BeforeTemplate { get; }
-        public override string AfterTemplate { get; }
+        public sealed override SqlTemplate Template { get; set; }
 
         public SelectQueryCommand(IApplicationSetting appSettings)
             : base(appSettings)
         {
-            BeforeTemplate = appSettings.SelectOutputBeforeTemplate;
-            AfterTemplate = appSettings.SelectOutputAfterTemplate;
+            Template = appSettings.SelectTemplate;
         }
 
-        public override string CreateQuery(DbTable targetTable, string targetDb, string alias, bool excludeInsert = false)
+        public override string SurroundStatement(DbTable targetTable, string statement)
+        {
+            return statement;
+        }
+
+        public override string CreateInitialStatement(DbTable targetTable, string targetDb, string alias)
         {
             var builder = new StringBuilder();
+
             builder.AppendLine($"SELECT {targetTable.Csv(alias)}");
             builder.AppendLine($"FROM {targetTable.FullName} {alias}");
+
             return builder.ToString();
         }
     }

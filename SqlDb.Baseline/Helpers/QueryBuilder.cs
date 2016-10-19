@@ -45,21 +45,23 @@ namespace SqlDb.Baseline.Helpers
         public override string ToString()
         {
             var query = new StringBuilder();
-            query.Append(_command.CreateQuery(_table, "test", "a1"));
+            query.Append(_command.CreateInitialStatement(_table, "test", "a1"));
 
-            var firstTime = false;
+            var unionOn = false;
             foreach (var innerJoinMap in _innerJoinsMap)
             {
-                if (firstTime)
+                if (unionOn)
                 {
                     query.AppendLine("UNION ALL");
-                    query.AppendLine(_command.CreateQuery(_table, "test", "a1", true));
+                    query.AppendLine($"SELECT {_table.Csv("a1")}");
+                    query.AppendLine($"FROM {_table.FullName} {"a1"}");
+                    unionOn = false;
                 }
 
                 foreach (var innerJoin in innerJoinMap.Value)
                 {
                     query.AppendLine(innerJoin.ToString());
-                    firstTime = true;
+                    unionOn = true;
                 }
             }
 

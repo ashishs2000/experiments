@@ -8,12 +8,9 @@ namespace SqlDb.Baseline.ConfigSections
 {
     public interface IApplicationSetting
     {
-        string InsertOutputBeforeTemplate { get; }
-        string InsertOutputAfterTemplate { get; }
-        string SelectOutputBeforeTemplate { get; }
-        string SelectOutputAfterTemplate { get; }
+        SqlTemplate InsertTemplate { get; }
+        SqlTemplate SelectTemplate { get; }
         CommandType CommandType { get; }
-        Func<DbTable, string, string> TableTemplate { get; }
         string OutputLocation { get; }
     }
 
@@ -21,11 +18,8 @@ namespace SqlDb.Baseline.ConfigSections
     {
         private readonly ProductsConfigurationSection _configSection;
         public IList<string> Databases { get; }
-        public string InsertOutputBeforeTemplate { get; }
-        public string InsertOutputAfterTemplate { get; }
-        public string SelectOutputBeforeTemplate { get; }
-        public string SelectOutputAfterTemplate { get; }
-        public Func<DbTable, string, string> TableTemplate { get; }
+        public SqlTemplate InsertTemplate { get; }
+        public SqlTemplate SelectTemplate { get; }
         public string OutputLocation { get; }
         public CommandType CommandType { get; }
 
@@ -34,26 +28,25 @@ namespace SqlDb.Baseline.ConfigSections
             Logger.LogInfo("Reading Configurations");
 
             CommandType = commandType;
-            var template = ReadOrDefaultProperty("InsertTableTemplate", "");
-
-            TableTemplate = (table, statement) =>
-            {
-                var temp = template.Replace("{tablename}", table.FullName);
-                temp = temp.Replace("{statement}", statement);
-                return temp;
-            };
             OutputLocation = ReadOrDefaultProperty("OutputLocation", "Output");
 
             _configSection = ProductsConfigurationSection.GetConfiguration(this);
             Databases = _configSection.Databases.Select(p => p.Name).ToList();
 
             var intertTemplate = File.ReadAllText("SqlTemplates/InsertOutputTemplate.txt");
-            InsertOutputBeforeTemplate = Between(intertTemplate, "<before>", "</before>");
-            InsertOutputAfterTemplate = Between(intertTemplate, "<after>", "</after>");
+            InsertTemplate = new SqlTemplate
+            {
+                Before = Between(intertTemplate, "<before>", "</before>"),
+                Statement = Between(intertTemplate, "<body>", "</body>"),
+                After = Between(intertTemplate, "<after>", "</after>")
+            };
 
             var selectTemplate = File.ReadAllText("SqlTemplates/SelectOutputTemplate.txt");
-            SelectOutputBeforeTemplate = Between(selectTemplate, "<before>", "</before>");
-            SelectOutputAfterTemplate = Between(selectTemplate, "<before>", "</before>");
+            SelectTemplate = new SqlTemplate
+            {
+                Before = Between(selectTemplate, "<before>", "</before>"),
+                After = Between(selectTemplate, "<after>", "</after>")
+            };
         }
 
         public DatabaseElementConfiguration GetDatabaseSetting(string database) => _configSection.Databases.FirstOrDefault(p => p.Name == database);

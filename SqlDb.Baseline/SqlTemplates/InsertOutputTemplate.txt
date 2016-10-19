@@ -19,6 +19,17 @@ GO
 DECLARE @EmployerIds table (EmployerId int)
 
 </before>
+
+<body>
+	IF NOT EXISTS (SELECT 1 FROM Migrations.Baseline WHERE TableName = '@tablename') 
+	BEGIN   
+		TRUNCATE TABLE @tablename    
+		@statement  
+		INSERT INTO Migrations.Baseline(TableName,IsCompleted)   
+		SELECT '@tablename',1 
+	END
+</body>
+
 <after>
 
 GO
