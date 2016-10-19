@@ -38,11 +38,7 @@ namespace SqlDb.Baseline.Helpers
 
         private InnerJoin JoinWithEmployer(string leftAlias)
         {
-            var employerJoin = new InnerJoin(_config);
-            employerJoin.LeftCondition("EmployerId", leftAlias);
-            employerJoin.RightCondition("@EmployerIds", "EmployerId", "eids");
-
-            return employerJoin;
+            return new EmployerJoin(_config,leftAlias);
         }
 
         public override string ToString()

@@ -35,4 +35,23 @@ namespace SqlDb.Baseline.Models
             return $"INNER JOIN {_config.SourceDatabase}.{RightTable} {RightAlias} ON {RightAlias}.{RightColumn} = {LeftAlias}.{LeftColumn}";
         }
     }
+
+    public class EmployerJoin : InnerJoin
+    {
+        private readonly string _leftAlias;
+        public EmployerJoin(IDatabaseConfig config, string leftAlias) 
+            : base(config)
+        {
+            _leftAlias = leftAlias;
+            RightTable = "@EmployerIds";
+            RightColumn = "EmployerId";
+            LeftColumn = "EmployerId";
+            RightAlias = "eids";
+        }
+        
+        public override string ToString()
+        {
+            return $"INNER JOIN {RightTable} {RightAlias} ON {RightAlias}.{RightColumn} = {LeftAlias}.{LeftColumn}";
+        }
+    }
 }

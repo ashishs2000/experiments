@@ -77,7 +77,7 @@ namespace SqlDb.Baseline.Query
             if (!AllObjects.ContainsKey(fullName))
                 AllObjects.Add(fullName, new DbTable(schema, table, primaryKey));
 
-            if (AllObjects[fullName].DbObjectType == DbObjectType.Table)
+            if (AllObjects[fullName].DbObjectType == DbObjectType.Table && !AllObjects[fullName].Columns.Contains(columnName))
                 AllObjects[fullName].Columns.Add(columnName);
         }
 

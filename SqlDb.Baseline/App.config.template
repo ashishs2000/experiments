@@ -48,7 +48,7 @@
   </appSettings>
   <migrationSection>
     <!--coredata configuration-->
-    <database name="coredata" target="basecoredata">
+    <database name="coredata" target="coredata_baseline">
       <mappings maptype="ignore">
         <add table="Migrations.*" />
         <add table="Hangfire.*" />
@@ -64,7 +64,7 @@
       </mappings>
     </database>
     <!--customObjects configuration-->
-    <database name="customObjects" target="basecustomObjects">
+    <database name="customObjects" target="customObjects_baseline">
       <mappings maptype="ignore">
         <add table="Migrations.*" />
         <add table="Hangfire.*" />
@@ -81,7 +81,7 @@
       </mappings>
     </database>
     <!--neogovpe configuration-->
-    <database name="neogovpe" output="neogov" target="baseneogovpe" skip="false">
+    <database name="neogovpe" output="neogov" target="neogovpe_baseline" skip="false">
       <mappings maptype="ignore">
         <add table="Migrations.*" />
         <add table="Hangfire.*" />
@@ -186,7 +186,7 @@
       </mappings>
     </database>
     <!--gj_mainsite configuration-->
-    <database name="gj_mainsite1" output="gj_mainsite" target="basegj_mainsite1" skip="false">
+    <database name="gj_mainsite1" output="gj_mainsite" target="gj_mainsite1_baseline" skip="false">
       <mappings maptype="ignore">
         <add table="Migrations.*" />
         <add table="Hangfire.*" />
@@ -488,7 +488,7 @@
       </mappings>
     </database>
     <!--sso configuration-->
-    <database name="sso" target="bassso">
+    <database name="sso" target="sso_baseline">
       <mappings maptype="ignore">
         <add table="Migrations.*" />
       </mappings>
