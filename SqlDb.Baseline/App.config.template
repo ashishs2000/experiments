@@ -1,485 +1,512 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <configuration>
   <configSections>
     <section name="migrationSection" type="SqlDb.Baseline.ConfigSections.ProductsConfigurationSection,SqlDb.Baseline" />
+    <section name="log4net" type="log4net.Config.Log4NetConfigurationSectionHandler, log4net" />
   </configSections>
   <startup>
     <supportedRuntime version="v4.0" sku=".NETFramework,Version=v4.5.2" />
   </startup>
-  <connectionStrings>
+  <log4net>
+    <appender type="log4net.Appender.RollingFileAppender" name="MyFileAppender">
+      <file type="log4net.Util.PatternString" value="Baseline.log" />
+      <appendToFile value="true" />
+      <rollingStyle value="Size" />
+      <maxSizeRollBackups value="10" />
+      <maximumFileSize value="1MB" />
+      <staticLogFileName value="true" />
+      <lockingModel type="log4net.Appender.FileAppender+MinimalLock" />
+      <layout type="log4net.Layout.PatternLayout">
+        <!--<conversionPattern value="[%level] %date | %message%newline" />-->
+        <conversionPattern value="%message%newline" />
+      </layout>
+    </appender>
+    <root>
+      <level value="ALL" />
+      <appender-ref ref="MyFileAppender" />
+    </root>
+  </log4net>
+  <!--Local-->
+  <!--<connectionStrings>
     <add name="coredata" connectionString="Data Source=ASHISH-W10\LOCALHOST;Initial Catalog=coredata; Trusted_Connection=True" providerName="System.Data.SqlClient" />
     <add name="neogovpe" connectionString="Data Source=ASHISH-W10\LOCALHOST;Initial Catalog=NeogovPE; Trusted_Connection=True" providerName="System.Data.SqlClient" />
     <add name="gj_mainsite1" connectionString="Data Source=ASHISH-W10\LOCALHOST;Initial Catalog=gj_mainsite1; Trusted_Connection=True" providerName="System.Data.SqlClient" />
     <add name="customObjects" connectionString="Data Source=ASHISH-W10\LOCALHOST;Initial Catalog=customObjects; Trusted_Connection=True" providerName="System.Data.SqlClient" />
     <add name="sso" connectionString="Data Source=ASHISH-W10\LOCALHOST;Initial Catalog=sso; Trusted_Connection=True" providerName="System.Data.SqlClient" />
+  </connectionStrings>-->
+  <!--Staging-->
+  <connectionStrings>
+    <add name="coredata" connectionString="Data Source=stg-oltpdb.neogov.net;Initial Catalog=coredata; Trusted_Connection=True" providerName="System.Data.SqlClient" />
+    <add name="neogovpe" connectionString="Data Source=stg-oltpdb.neogov.net;Initial Catalog=NeogovPE; Trusted_Connection=True" providerName="System.Data.SqlClient" />
+    <add name="gj_mainsite1" connectionString="Data Source=stg-oltpdb.neogov.net;Initial Catalog=gj_mainsite1; Trusted_Connection=True" providerName="System.Data.SqlClient" />
+    <add name="customObjects" connectionString="Data Source=stg-oltpdb.neogov.net;Initial Catalog=customObjects; Trusted_Connection=True" providerName="System.Data.SqlClient" />
+    <add name="sso" connectionString="Data Source=stg-oltpdb.neogov.net;Initial Catalog=sso; Trusted_Connection=True" providerName="System.Data.SqlClient" />
   </connectionStrings>
-
   <appSettings>
-    <add key="OutputLocation" value="Output"/>
-    <add key="InsertTableTemplate"
-     value="
-IF NOT EXISTS (SELECT 1 FROM Migrations.Baseline WHERE TableName = '{tablename}')
-BEGIN
-  TRUNCATE TABLE {tablename}
-
-  {statement}
-  INSERT INTO Migrations.Baseline(TableName,IsCompleted)
-  SELECT '{tablename}',1
-END"/>
+    <add key="OutputLocation" value="Output" />
+    <add key="ClientSettingsProvider.ServiceUri" value="" />
   </appSettings>
-
   <migrationSection>
-
     <!--coredata configuration-->
-    <!--<database name="coredata" target="test">
+    <database name="coredata" target="test">
       <mappings maptype="ignore">
-        <add table="Migrations.*"/>
-        <add table="Hangfire.*"/>
-        <add table="dbo.passwordresetreasons"/>
-        <add table="dbo.retryeventprocessingqueue"/>
+        <add table="Migrations.*" />
+        <add table="Hangfire.*" />
+        <add table="dbo.passwordresetreasons" />
+        <add table="dbo.retryeventprocessingqueue" />
       </mappings>
-
       <mappings maptype="lookup">
-        <add table="dbo.applications"/>
-        <add table="dbo.brands"/>
-        <add table="dbo.states"/>
-        <add table="dbo.timezonedef"/>
-        <add table="dbo.usertypes"/>
-      </mappings>
-    </database>-->
-
-    <!--customObjects configuration-->
-    <!--<database name="customObjects" target="test">
-      <mappings maptype="ignore">
-        <add table="Migrations.*"/>
-        <add table="Hangfire.*"/>
-        <add table="dbo.co_migrationv1_finalstatuslog"/>
-        <add table="dbo.serviceerror"/>
-        <add table="dataimport.SyncEntityDetail"/>
-        <add table="dataimport.Co_MigrationV1_FinalStatusLog"/>
-        <add table="dataimport.CO_MigrationV1_FieldLog"/>
-        <add table="dataimport.DeleteRelationShip"/>
-      </mappings>
-
-      <mappings maptype="lookup">
-        <add table="dbo.securityscope"/>
-        <add table="dbo.servicesettings"/>
-      </mappings>
-    </database>-->
-
-    <!--neogovpe configuration-->
-    <database name="neogovpe" output="neogov.sql" target="test">
-      <mappings maptype="ignore">
-        <add table="Migrations.*"/>
-        <add table="Hangfire.*"/>
-        <add table="ngv.auditdata"/>
-        <add table="dbo.bulkoperations"/>
-        <add table="dbo.elmah_error"/>
-        <add table="dataimport.dataimporttransactionstatuses"/>
-        <add table="dbo.ProgramMigrationEmployeeGroupStepMaps"/>
-        <add table="dbo.Users_DisabledPerform_PF16967"/>
-        <add table="dbo.xUsers_SecurityProfile_DELETED_PF16967"/>
-        <add table="dbo.Employees_Deleted"/>
-        <add table="ngv.CustomLabels_Deleted"/>
-        <add table="dbo.TaskGeneratedBaseOnEvaluationPeriod"/>
-        <add table="dbo.FormI9"/>
-        <add table="ngv.ApproverComments"/>
-        <add table="dbo.xEmployee_Positions"/>
-        <add table="dbo.xEmployees_Tasks"/>
-        <add table="dbo.FormW4"/>
-        <add table="dbo.NeogovTasksInfo_Deleted_PF15804"/>
-        <add table="dbo.NeogovTasks_Deleted_PF15804"/>
-        <add table="eVerify.AdministrativeUsers"/>
-        <add table="Portal.WidgetTypes"/>
-        <add table="eVerify.OverDueVerifyReasons"/>
-        <add table="dbo.EvaluationOverallMismatchScore_Deleted"/>
-        <add table="dbo.EvaluationGoalsMismatchScore_Deleted"/>
-        <add table="dbo.EvaluationCompetencyMismatchScore_Deleted"/>
-        <add table="dbo.EvaluationWithGroupSteps_Backup"/>
-        <add table="dbo.EmployeeScheduledEvaluation_Added"/>
-        <add table="dbo.AutomaticEvaluation_Updated"/>
-        <add table="dbo.Employee_Recalcuations"/>
-        <add table="dbo.AutomaticEvaluation_OLD"/>
-        <add table="dbo.PF_14810_UpdatedValues_ToBeDeleted"/>
-        <add table="dbo.AutomaticEvaluation_Deleted"/>
-        <add table="dbo.TMP_InvalidPrograms"/>
-        <add table="dbo.ProgramMigrationIdenticalSchedulesReviewMap"/>
-        <add table="dbo.ProgramMigrationIdenticalSchedules"/>
-        <add table="dbo.ProgramMigrationMaps"/>
-        <add table="dbo.ProgramMigrationReviewMaps"/>
-        <add table="dbo.positions_DELETE_01"/>
-        <add table="utilities.EmployeeEvaluations"/>
-        <add table="utilities.xPositions_Competencies"/>
-        <add table="utilities.TaskGeneratedBaseOnEvaluationPeriod"/>
-        <add table="utilities.employees"/>
-        <add table="dbo.EvaluationPeriods"/>
-        <add table="dbo.ProbationReviews"/>
-        <add table="dbo.PeriodicReviews"/>
-        <add table="DataImport.RawDataImportRecords"/>
-        <add table="DataImport.DataImportTransactions"/>
-        <add table="DataImport.RawDataRecordStatuses"/>
-        <add table="DataImport.DataImportTransactionStatuses"/>
-        <add table="HangFire.Schema"/>
-        <add table="dbo.TemplateAcknowledgers"/>
-        <add table="migrations.version"/>
-        <add table="dbo.TemplateWorkflowStages_old"/>
-        <add table="dbo.Users_OLD_PE"/>
-        <add table="dbo.Tasks"/>
-        <add table="dbo.ClassSpecifications_OLD"/>
-        <add table="ngv.NetSuiteSync"/>
-        <add table="dbo.StateDef_OLD"/>
-        <add table="dbo.Temp_TasksMigration_Errors"/>
-        <add table="dbo.Temp_MessagesMigration_Errors"/>
-        <add table="dbo.Temp_ApproversMigration_Errors"/>
-        <add table="dbo.EvaluationPeriodDetails"/>
-        <add table="dbo.TaskReminderNotifications"/>
-        <add table="dbo.Migrations"/>
-        <add table="dbo.UserMigration"/>
-        <add table="dbo.xUsers_Roles"/>
-        <add table="dbo.TaskPriorities"/>
-        <add table="dbo.TaskReminderList"/>
-        <add table="dbo.Employers_OLD"/>
-        <add table="dbo.TaskReminders"/>
-        <add table="dbo.AuditLogin"/>
-        <add table="dbo.xClassSpecifications_INSIGHT_ClassSpecifications"/>
-        <add table="dbo.xEvaluationPeriods_Tasks"/>
-      </mappings>
-
-      <mappings maptype="lookup">
-        <add table="configuration.notificationreceivertype"/>
-        <add table="configuration.menu"/>
-        <add table="configuration.eventtype"/>
-        <add table="dbo.culture"/>
-      </mappings>
-
-      <!--Column name should be unique-->
-      <mappings maptype="relation">
-        <add table="dbo.Goals" column="GoalId"/>
-        <add table="dbo.Competencies" column="CompetencyID"/>
-        <add table="dbo.CompetencyGroups" column="CompetencyGroupID"/>
-        <add table="dbo.Trainings" column="TrainingID"/>
-        <add table="dbo.NeogovTasks" column="TaskID"/>
-        <add table="dbo.Programs" column="ProgramID"/>
-        <add table="dbo.EmployeePosition" column="UserId,EmployeeId"/>
-        <add table="dbo.Departments" column="DepartmentId"/>
-        <add table="dbo.Divisions" column="DivisionId"/>
-        <add table="dbo.ClassSpecifications" column="ClassSpecID"/>
+        <add table="dbo.applications" />
+        <add table="dbo.brands" />
+        <add table="dbo.states" />
+        <add table="dbo.timezonedef" />
+        <add table="dbo.usertypes" />
       </mappings>
     </database>
-
-    <!--gj_mainsite configuration-->
-    <!--<database name="gj_mainsite1" output="gj_mainsite.sql" target="test">
+    <!--customObjects configuration-->
+    <database name="customObjects" target="test">
       <mappings maptype="ignore">
-        <add table="Migrations.*"/>
-        <add table="Hangfire.*"/>
-        <add table="dbo.StepDispositionDef"/>
-        <add table="dbo.GeoLiteCityLocation"/>
-        <add table="dbo.departments_movedToCore"/>
-        <add table="dbo.divisions_movedToCore"/>
-        <add table="integrations.departmentDataErrors"/>
-        <add table="dbo.hirePEPositions_DELETE"/>
-        <add table="dbo.reqPEPositions_DELETE"/>
-        <add table="utilities.HirePEPositions"/>
-        <add table="utilities.ReqPEPositions"/>
-        <add table="utilities.rockvilleReqPEPositions"/>
-        <add table="dbo.AffectedDraftJobApplications_022315"/>
-        <add table="dbo.DraftApplications"/>
-        <add table="utilities.coSprings_class_class_spec_export"/>
-        <add table="utilities.obispo_class_spec_export"/>
-        <add table="utilities.lacity_usersInactivated"/>
-        <add table="migrations.version"/>
-        <add table="utilities.positions_lasVegas_client654_peTab"/>
-        <add table="utilities.positions_lasVegas_client654_pe"/>
-        <add table="utilities.positions_lasVegas_client654_IN"/>
-        <add table="dbo.AffectedApplicationReport_ToDelete"/>
-        <add table="dbo.AllAffectedApplicationsQuestions_ToDelete"/>
-        <add table="dbo.AffectedApplicationsQuestionsPhase1_ToDelete"/>
-        <add table="dbo.AffectedApplications"/>
-        <add table="dbo.AffectedApplicationsQuestionsFinal_ToDelete"/>
-        <add table="dbo.FinalAffectedApplicationsList_ToDelete"/>
-        <add table="dbo.AffectedApplicationsQuestions_ToDelete"/>
-        <add table="dbo.AffectedApplications2"/>
-        <add table="dbo.AffectedApplications_TempToDelete"/>
-        <add table="dbo.AffectedJobApplications_TempToDelete"/>
-        <add table="dbo.AffectedApplications_ToDelete"/>
-        <add table="dbo.MissingApplications_ToDelete"/>
-        <add table="integrations.restoreErrors"/>
-        <add table="integrations.reqUsersGroupData_Log"/>
-        <add table="integrations.reqUsersGroupData"/>
-        <add table="integrations.reqUsersDivisionData_Log"/>
-        <add table="integrations.reqUsersDivisionData"/>
-        <add table="integrations.reqUsersDepartmentData_Log"/>
-        <add table="integrations.reqUsersDepartmentData"/>
-        <add table="integrations.reqUsersDataErrors"/>
-        <add table="integrations.reqUsersData_Log"/>
-        <add table="integrations.reqUsersData"/>
-        <add table="integrations.physicalClassDataErrors"/>
-        <add table="integrations.physicalClassData_Log"/>
-        <add table="integrations.physicalClassData"/>
-        <add table="integrations.occupationalGroupDataErrors"/>
-        <add table="integrations.occupationalGroupData_Log"/>
-        <add table="integrations.occupationalGroupData"/>
-        <add table="integrations.locationDataErrors"/>
-        <add table="integrations.locationData_Log"/>
-        <add table="integrations.locationData"/>
-        <add table="integrations.divisionDataErrors"/>
-        <add table="integrations.divisionData_Log"/>
-        <add table="integrations.divisionData"/>
-        <add table="integrations.departmentData_Log"/>
-        <add table="integrations.departmentData"/>
-        <add table="integrations.classSpecDataErrors"/>
-        <add table="integrations.classSpecDataCustomFieldValues"/>
-        <add table="integrations.classSpecDataCustomFieldValues_Log"/>
-        <add table="integrations.classSpecData_Log"/>
-        <add table="integrations.classSpecData"/>
-        <add table="integrations.bargainingUnitDataErrors"/>
-        <add table="integrations.bargainingUnitData_Log"/>
-        <add table="integrations.bargainingUnitData"/>
-        <add table="integrations.adminSecurityRolesData_Log"/>
-        <add table="integrations.adminSecurityRolesData"/>
-        <add table="integrations.adminDepartmentNotificationData_Log"/>
-        <add table="integrations.adminDepartmentNotificationData"/>
-        <add table="integrations.adminDepartmentAccessData_Log"/>
-        <add table="integrations.adminDepartmentAccessData"/>
-        <add table="integrations.adminDataErrors"/>
-        <add table="integrations.adminData_Log"/>
-        <add table="integrations.adminData"/>
-        <add table="dbo.SEC_Group_Admins"/>
-        <add table="dbo.PositionSurveyDef"/>
-        <add table="dbo.MessageUserMat"/>
-        <add table="dbo.LicensesDef"/>
-        <add table="dbo.ImportMatch"/>
-        <add table="dbo.GovJobsCustNotes"/>
-        <add table="dbo.BBUserTemplateMat"/>
-        <add table="dbo.agencyPageLinks"/>
-        <add table="dbo.BackgroundCheckGetMoreDetail_Log"/>
-        <add table="dbo.TEMP_ISPEND_0"/>
-        <add table="dbo.TEMP_ISPEND_1"/>
-        <add table="dbo.JobSeekers"/>
-        <add table="dbo.Migrations"/>
-        <add table="dbo.EvaluationTemplateTasks"/>
-        <add table="dbo.ReportTemplates"/>
-        <add table="integrations.profilesInternationalAssessment_HOLD_XXX"/>
-        <add table="dbo.CustomFieldOptionAns_HOLD_XXX"/>
-        <add table="dbo.CustomFieldAns_HOLD_XXX"/>
-        <add table="dbo.JS_MasterProfile_HOLD_XXX"/>
-        <add table="dbo.EEOCodeDef"/>
-        <add table="integrations.vendorLanguages"/>
-        <add table="dbo.ErrorTracking"/>
-        <add table="dbo.PersonIDDef"/>
-        <add table="dbo.AgencyFields"/>
-        <add table="dbo.AgencyFieldDef"/>
-        <add table="toDelete.JS_PersonalProfile_DL"/>
-        <add table="toDelete.JS_MasterProfile_DL"/>
-        <add table="dbo.JS_UserDef_forcePasswordReset"/>
-        <add table="dbo.JS_PrefCatMatrix"/>
-        <add table="access.passwordAnswers"/>
-        <add table="dbo.ReportBatch"/>
-        <add table="dbo.ResumeSearchCache"/>
-        <add table="dbo.TN_PositionGeoArea"/>
-        <add table="integrations.newHireAvailableFieldsDef"/>
-        <add table="dbo.SEC_Group_ReqUsers"/>
-        <add table="dbo.TN_Department"/>
-        <add table="dbo.TestUser"/>
-        <add table="dbo.SEC_Group_Actions"/>
-        <add table="dbo.JS_ContactInfo_Logger"/>
-        <add table="dbo.SEC_ACL_Admin"/>
-        <add table="dbo.Coursework"/>
-        <add table="dbo.SEC_Groups"/>
-        <add table="dbo.JS_MetroLocationMatrix"/>
-        <add table="dbo.SEC_ACL"/>
-        <add table="dbo.CandidateSearch"/>
-        <add table="dbo.AdminGroups"/>
-        <add table="dbo.BBReqUserTemplateMat"/>
-        <add table="dbo.AdminGroupMatrix"/>
-        <add table="dbo.TMS_ResultUpload"/>
-        <add table="dbo.TMS_ResultTest"/>
-        <add table="dbo.ReqApproval"/>
-        <add table="dbo.BBEmpTemplateMat"/>
-        <add table="dbo.BBTemplates"/>
-        <add table="dbo.YahooFunctionCodes"/>
-        <add table="integrations.jpMorganChaseParameters"/>
-        <add table="access.mailServers"/>
-        <add table="dbo.ReqLanguageMat"/>
-        <add table="dbo.AuditReference"/>
-        <add table="dbo.Audit"/>
-        <add table="dbo.TransactionTrackingChange"/>
-        <add table="dbo.ReqApprovalStepNotes"/>
-        <add table="dbo.AuditReferenceType"/>
-        <add table="dbo.Merge_JS_MasterProfile"/>
-        <add table="dbo.AuditType"/>
-        <add table="dbo.GovJobsEmployees"/>
-        <add table="dbo.AuditAction"/>
-        <add table="dbo.GovJobsCustNotesDef"/>
-        <add table="dbo.ResumeSearchFailed"/>
-        <add table="dbo.AdNetworkActionDef"/>
-        <add table="dataMart.EmployersFact"/>
-        <add table="dataMart.EmployersDimension"/>
-        <add table="dbo.CandidateTestAns"/>
-        <add table="dbo.CurrentJobList"/>
-        <add table="dbo.OMRTest_dups"/>
-        <add table="dbo.FilleAttach"/>
-        <add table="dbo.ICRFieldMap"/>
-        <add table="workflow.updatedFields"/>
-        <add table="dbo.LoginHistory"/>
-        <add table="dbo.PersonIDQuestion"/>
-        <add table="dbo.JS_SearchPreferences"/>
-        <add table="dbo.TN_County"/>
-        <add table="dbo.ResumeSearchQuery"/>
-        <add table="access.passwordQuestions"/>
-        <add table="dbo.TN_PositionGeoJudicial"/>
-        <add table="dbo.productVersions"/>
-        <add table="dbo.MessageReqUserMat"/>
-        <add table="dbo.Employers_ResumeConfirmVerbiage_Null_hotfix"/>
-        <add table="twc.stateCodes"/>
-        <add table="twc.militaryCodes"/>
-        <add table="dbo.TN_PositionGeoDivision"/>
-        <add table="dbo.TN_PositionGeoDistrict"/>
-        <add table="dbo.TN_PositionGeoBreakdown"/>
-        <add table="dbo.TN_Division"/>
-        <add table="dbo.SessionTrack"/>
-        <add table="dbo.OpenJobRequests"/>
-        <add table="dbo.js_userdef_john_pink"/>
-        <add table="integrations.classSpecDataCustomFields"/>
-        <add table="dbo.requsers_tmp_PA"/>
-        <add table="dbo.TN_PositionGeoRegion"/>
-        <add table="dbo.JS_PersonalProfile_Temp_Mappings"/>
-        <add table="dbo.rejects_bad_rejectcode"/>
-        <add table="dbo.CustomFieldAnsTNBackup"/>
-        <add table="dbo.TMS_ResultTestAns"/>
-        <add table="dbo.UsageRule"/>
-        <add table="dbo.zz_VenturaSSN"/>
-        <add table="dbo.zz_SSNMatch"/>
-        <add table="dbo.zz_SantaClaraEffectiveWageUpdates"/>
-        <add table="dbo.ImportMatchTemp"/>
-        <add table="dbo.SSONETCodes"/>
-        <add table="dbo.tempAdAgencyJobMat"/>
-        <add table="dbo.TmpEmailSend"/>
-        <add table="dbo.tempClassData"/>
-        <add table="dbo.ReqExtraHelpDef"/>
-        <add table="dbo.ajb_pi_offices"/>
-        <add table="dbo.ajb_pi_jobs"/>
-        <add table="dbo.dtproperties"/>
-        <add table="dbo.Invoices"/>
-        <add table="integrations.adminData_Log"/>
-        <add table="dbo.AppChangeLog"/>
-        <add table="integrations.adminDepartmentNotificationData_Log"/>
-        <add table="integrations.adminDepartmentAccessData_Log"/>
-        <add table="integrations.adminSecurityRolesData_Log"/>
-        <add table="dbo.BackgroundCheckGetMoreDetail_Log"/>
-        <add table="integrations.bargainingUnitData_Log"/>
-        <add table="integrations.reqUsersData_Log"/>
-        <add table="integrations.classSpecData_Log"/>
-        <add table="integrations.classSpecDataCustomFieldValues_Log"/>
-        <add table="integrations.departmentData_Log"/>
-        <add table="integrations.divisionData_Log"/>
-        <add table="dbo.BackgroundCheckResult_Log"/>
-        <add table="integrations.locationData_Log"/>
-        <add table="integrations.occupationalGroupData_Log"/>
-        <add table="integrations.physicalClassData_Log"/>
-        <add table="integrations.reqUsersDepartmentData_Log"/>
-        <add table="integrations.reqUsersDivisionData_Log"/>
-        <add table="integrations.reqUsersGroupData_Log"/>
-        <add table="dbo.JS_MasterProfile_Archive"/>
-        <add table="dbo.CustomFieldAns_Archive"/>
-        <add table="dbo.CustomFieldOptionAns_Archive"/>
+        <add table="Migrations.*" />
+        <add table="Hangfire.*" />
+        <add table="dbo.co_migrationv1_finalstatuslog" />
+        <add table="dbo.serviceerror" />
+        <add table="dataimport.SyncEntityDetail" />
+        <add table="dataimport.Co_MigrationV1_FinalStatusLog" />
+        <add table="dataimport.CO_MigrationV1_FieldLog" />
+        <add table="dataimport.DeleteRelationShip" />
       </mappings>
-
       <mappings maptype="lookup">
-        <add table="dbo.SubAgencyDef"/>
-        <add table="core.entityTypeDef"/>
-        <add table="dbo.EvaluationStepTypeDef"/>
-        <add table="dbo.ReferredDispositionDef"/>
-        <add table="dbo.AgencyGridViewColumnTypeDef"/>
-        <add table="dbo.SMEScoreDef"/>
-        <add table="dbo.ExamTypeDef"/>
-        <add table="dbo.TestDef"/>
-        <add table="dbo.AgencyViewTypeDef"/>
-        <add table="dbo.FormDef"/>
-        <add table="dbo.ReqListTypeDef"/>
-        <add table="dbo.DriverLicenseClassDef"/>
-        <add table="dbo.CreditTypeDef"/>
-        <add table="dbo.EligibleListTypeDef"/>
-        <add table="dbo.positionStatusDef"/>
-        <add table="dbo.SnapshotTypeDef"/>
-        <add table="dbo.ListStatusDef"/>
-        <add table="dbo.ActionTypeDef"/>
-        <add table="dbo.AdditionalInfoDef"/>
-        <add table="dbo.AgencySizeDef"/>
-        <add table="dbo.SearchLocationDef"/>
-        <add table="dbo.CountryDef"/>
-        <add table="dbo.CustomerSourceDef"/>
-        <add table="dbo.DisplaySalaryDef"/>
-        <add table="dbo.EEOCategoryDef"/>
-        <add table="dbo.HSHighestLevelDef"/>
-        <add table="dbo.ReqNotificationTypeDef"/>
-        <add table="dbo.JobTermDef"/>
-        <add table="dbo.JS_EducationDef"/>
-        <add table="dbo.JS_UserDef"/>
-        <add table="dbo.LanguageDef"/>
-        <add table="dbo.MonthsDef"/>
-        <add table="dbo.NonStandardPaidDef"/>
-        <add table="dbo.PositionTypeDef"/>
-        <add table="dbo.RelocateDef"/>
-        <add table="dbo.ReportDef"/>
-        <add table="dbo.SalaryPaidDef"/>
-        <add table="dbo.SchoolTypeDef"/>
-        <add table="dbo.ResultFieldDef"/>
-        <add table="dbo.ServiceLevelDef"/>
-        <add table="dbo.ShiftTypeDef"/>
-        <add table="dbo.SkillLevelDef"/>
-        <add table="dbo.SuppQuestionGroupDef"/>
-        <add table="dbo.WorkTypeDef"/>
-        <add table="dbo.AgencyLinkTypeDef"/>
-        <add table="dbo.BackgroundCheckPackageDef"/>
-        <add table="dbo.BackgroundCheckStatusDef"/>
-        <add table="dbo.HRISPayrollSystemDef"/>
-        <add table="dbo.TMS_TestTypeDef"/>
-        <add table="dbo.BackgroundCheckScreeningDef"/>
-        <add table="dbo.SocialNetworkDef"/>
-        <add table="dbo.MetroLocationDef"/>
-        <add table="dbo.SuppQuestionEEODef"/>
-        <add table="dbo.AdTypeDef"/>
-        <add table="dbo.SchoolDegreeDef"/>
-        <add table="dbo.SuppQuestionTypeDef"/>
-        <add table="dbo.NotificationTypeDef"/>
-        <add table="dbo.ResultDef"/>
-        <add table="dbo.TaskPriorityDef"/>
-        <add table="dbo.EducationLevelDef"/>
-        <add table="dbo.CandidateStepActionDef"/>
-        <add table="dbo.TaskStatusDef"/>
-        <add table="dbo.EligibleListDef"/>
-        <add table="dbo.ReportCategoryDef"/>
-        <add table="dbo.LocationDef"/>
-        <add table="dbo.OCGroupDef"/>
-        <add table="dbo.PhysicalClassDef"/>
-        <add table="dbo.ResourceTypeDef"/>
-        <add table="dbo.DataTypeDef"/>
-        <add table="dbo.TMS_QuestionTypeDef"/>
+        <add table="dbo.securityscope" />
+        <add table="dbo.servicesettings" />
       </mappings>
-
+    </database>
+    <!--neogovpe configuration-->
+    <database name="neogovpe" output="neogov" target="test" skip="false">
+      <mappings maptype="ignore">
+        <add table="Migrations.*" />
+        <add table="Hangfire.*" />
+        <add table="ngv.auditdata" />
+        <add table="dbo.bulkoperations" />
+        <add table="dbo.elmah_error" />
+        <add table="dataimport.dataimporttransactionstatuses" />
+        <add table="dbo.ProgramMigrationEmployeeGroupStepMaps" />
+        <add table="dbo.Users_DisabledPerform_PF16967" />
+        <add table="dbo.xUsers_SecurityProfile_DELETED_PF16967" />
+        <add table="dbo.Employees_Deleted" />
+        <add table="ngv.CustomLabels_Deleted" />
+        <add table="dbo.TaskGeneratedBaseOnEvaluationPeriod" />
+        <add table="dbo.FormI9" />
+        <add table="ngv.ApproverComments" />
+        <add table="dbo.xEmployee_Positions" />
+        <add table="dbo.xEmployees_Tasks" />
+        <add table="dbo.FormW4" />
+        <add table="dbo.NeogovTasksInfo_Deleted_PF15804" />
+        <add table="dbo.NeogovTasks_Deleted_PF15804" />
+        <add table="eVerify.AdministrativeUsers" />
+        <add table="Portal.WidgetTypes" />
+        <add table="eVerify.OverDueVerifyReasons" />
+        <add table="dbo.EvaluationOverallMismatchScore_Deleted" />
+        <add table="dbo.EvaluationGoalsMismatchScore_Deleted" />
+        <add table="dbo.EvaluationCompetencyMismatchScore_Deleted" />
+        <add table="dbo.EvaluationWithGroupSteps_Backup" />
+        <add table="dbo.EmployeeScheduledEvaluation_Added" />
+        <add table="dbo.AutomaticEvaluation_Updated" />
+        <add table="dbo.Employee_Recalcuations" />
+        <add table="dbo.AutomaticEvaluation_OLD" />
+        <add table="dbo.PF_14810_UpdatedValues_ToBeDeleted" />
+        <add table="dbo.AutomaticEvaluation_Deleted" />
+        <add table="dbo.TMP_InvalidPrograms" />
+        <add table="dbo.ProgramMigrationIdenticalSchedulesReviewMap" />
+        <add table="dbo.ProgramMigrationIdenticalSchedules" />
+        <add table="dbo.ProgramMigrationMaps" />
+        <add table="dbo.ProgramMigrationReviewMaps" />
+        <add table="dbo.positions_DELETE_01" />
+        <add table="utilities.EmployeeEvaluations" />
+        <add table="utilities.xPositions_Competencies" />
+        <add table="utilities.TaskGeneratedBaseOnEvaluationPeriod" />
+        <add table="utilities.employees" />
+        <add table="dbo.EvaluationPeriods" />
+        <add table="dbo.ProbationReviews" />
+        <add table="dbo.PeriodicReviews" />
+        <add table="DataImport.RawDataImportRecords" />
+        <add table="DataImport.DataImportTransactions" />
+        <add table="DataImport.RawDataRecordStatuses" />
+        <add table="DataImport.DataImportTransactionStatuses" />
+        <add table="HangFire.Schema" />
+        <add table="dbo.TemplateAcknowledgers" />
+        <add table="migrations.version" />
+        <add table="dbo.TemplateWorkflowStages_old" />
+        <add table="dbo.Users_OLD_PE" />
+        <add table="dbo.Tasks" />
+        <add table="dbo.ClassSpecifications_OLD" />
+        <add table="ngv.NetSuiteSync" />
+        <add table="dbo.StateDef_OLD" />
+        <add table="dbo.Temp_TasksMigration_Errors" />
+        <add table="dbo.Temp_MessagesMigration_Errors" />
+        <add table="dbo.Temp_ApproversMigration_Errors" />
+        <add table="dbo.EvaluationPeriodDetails" />
+        <add table="dbo.TaskReminderNotifications" />
+        <add table="dbo.Migrations" />
+        <add table="dbo.UserMigration" />
+        <add table="dbo.xUsers_Roles" />
+        <add table="dbo.TaskPriorities" />
+        <add table="dbo.TaskReminderList" />
+        <add table="dbo.Employers_OLD" />
+        <add table="dbo.TaskReminders" />
+        <add table="dbo.AuditLogin" />
+        <add table="dbo.xClassSpecifications_INSIGHT_ClassSpecifications" />
+        <add table="dbo.xEvaluationPeriods_Tasks" />
+        <add table="dbo.case_log" />
+      </mappings>
+      <mappings maptype="lookup">
+        <add table="configuration.notificationreceivertype" />
+        <add table="configuration.menu" />
+        <add table="configuration.eventtype" />
+        <add table="dbo.culture" />
+        <add table="configuration.actionitems" />
+        <add table="dbo.SecurityObjects" />
+        <add table="dbo.neogoventitytypes" />
+        <add table="dbo.CaseStatementCode_lkp" />
+        <add table="dbo.caseVerificationDocType_lkp" />
+        <add table="dbo.CaseLetterTypeCodes_lkp" />
+        <add table="dbo.DMVEligibleState_lkp" />
+        <add table="ngv.statuses" />
+      </mappings>
       <mappings maptype="relation">
-        <add table="dbo.DepartmentProxy" column="DepartmentId"/>
-        <add table="dbo.DivisionProxy" column="DivisionId"/>
-        <add table="dbo.Class_Spec_Master" column="ClassSpecID"/>
-        <add table="dbo.Jobs" column="JobId"/>
-        <add table="dbo.Administrators" column="AdminId"/>
-        <add table="dbo.ResumesReceived" column="ResumeReceivedId"/>
-        <add table="dbo.SuppQuestions" column="QuestionId"/>
-        <add table="dbo.ExamPlan" column="ExamPlanID"/>
-        <add table="dbo.Requisitions" column="ReqID"/>
+        <add table="dbo.Goals" column="GoalId" />
+        <add table="dbo.Competencies" column="CompetencyID" />
+        <add table="dbo.CompetencyGroups" column="CompetencyGroupID" />
+        <add table="dbo.Trainings" column="TrainingID" />
+        <add table="dbo.NeogovTasks" column="TaskID" />
+        <add table="dbo.Programs" column="ProgramID" />
+        <add table="dbo.EmployeePosition" column="UserId" />
+        <add table="dbo.Departments" column="DepartmentId" />
+        <add table="dbo.Divisions" column="DivisionId" />
+        <add table="dbo.ClassSpecifications" column="ClassSpecID" />
       </mappings>
-    </database>-->
-
-    <!--sso configuration-->
-    <!--<database name="sso" target="test">
+    </database>
+    <!--gj_mainsite configuration-->
+    <database name="gj_mainsite1" output="gj_mainsite" target="test" skip="false">
       <mappings maptype="ignore">
-        <add table="Migrations.*"/>
+        <add table="Migrations.*" />
+        <add table="Hangfire.*" />
+        <add table="dbo.StepDispositionDef" />
+        <add table="dbo.GeoLiteCityLocation" />
+        <add table="dbo.departments_movedToCore" />
+        <add table="dbo.divisions_movedToCore" />
+        <add table="integrations.departmentDataErrors" />
+        <add table="dbo.hirePEPositions_DELETE" />
+        <add table="dbo.reqPEPositions_DELETE" />
+        <add table="utilities.HirePEPositions" />
+        <add table="utilities.ReqPEPositions" />
+        <add table="utilities.rockvilleReqPEPositions" />
+        <add table="dbo.AffectedDraftJobApplications_022315" />
+        <add table="dbo.DraftApplications" />
+        <add table="utilities.coSprings_class_class_spec_export" />
+        <add table="utilities.obispo_class_spec_export" />
+        <add table="utilities.lacity_usersInactivated" />
+        <add table="migrations.version" />
+        <add table="utilities.positions_lasVegas_client654_peTab" />
+        <add table="utilities.positions_lasVegas_client654_pe" />
+        <add table="utilities.positions_lasVegas_client654_IN" />
+        <add table="dbo.AffectedApplicationReport_ToDelete" />
+        <add table="dbo.AllAffectedApplicationsQuestions_ToDelete" />
+        <add table="dbo.AffectedApplicationsQuestionsPhase1_ToDelete" />
+        <add table="dbo.AffectedApplications" />
+        <add table="dbo.AffectedApplicationsQuestionsFinal_ToDelete" />
+        <add table="dbo.FinalAffectedApplicationsList_ToDelete" />
+        <add table="dbo.AffectedApplicationsQuestions_ToDelete" />
+        <add table="dbo.AffectedApplications2" />
+        <add table="dbo.AffectedApplications_TempToDelete" />
+        <add table="dbo.AffectedJobApplications_TempToDelete" />
+        <add table="dbo.AffectedApplications_ToDelete" />
+        <add table="dbo.MissingApplications_ToDelete" />
+        <add table="integrations.restoreErrors" />
+        <add table="integrations.reqUsersGroupData_Log" />
+        <add table="integrations.reqUsersGroupData" />
+        <add table="integrations.reqUsersDivisionData_Log" />
+        <add table="integrations.reqUsersDivisionData" />
+        <add table="integrations.reqUsersDepartmentData_Log" />
+        <add table="integrations.reqUsersDepartmentData" />
+        <add table="integrations.reqUsersDataErrors" />
+        <add table="integrations.reqUsersData_Log" />
+        <add table="integrations.reqUsersData" />
+        <add table="integrations.physicalClassDataErrors" />
+        <add table="integrations.physicalClassData_Log" />
+        <add table="integrations.physicalClassData" />
+        <add table="integrations.occupationalGroupDataErrors" />
+        <add table="integrations.occupationalGroupData_Log" />
+        <add table="integrations.occupationalGroupData" />
+        <add table="integrations.locationDataErrors" />
+        <add table="integrations.locationData_Log" />
+        <add table="integrations.locationData" />
+        <add table="integrations.divisionDataErrors" />
+        <add table="integrations.divisionData_Log" />
+        <add table="integrations.divisionData" />
+        <add table="integrations.departmentData_Log" />
+        <add table="integrations.departmentData" />
+        <add table="integrations.classSpecDataErrors" />
+        <add table="integrations.classSpecDataCustomFieldValues" />
+        <add table="integrations.classSpecDataCustomFieldValues_Log" />
+        <add table="integrations.classSpecData_Log" />
+        <add table="integrations.classSpecData" />
+        <add table="integrations.bargainingUnitDataErrors" />
+        <add table="integrations.bargainingUnitData_Log" />
+        <add table="integrations.bargainingUnitData" />
+        <add table="integrations.adminSecurityRolesData_Log" />
+        <add table="integrations.adminSecurityRolesData" />
+        <add table="integrations.adminDepartmentNotificationData_Log" />
+        <add table="integrations.adminDepartmentNotificationData" />
+        <add table="integrations.adminDepartmentAccessData_Log" />
+        <add table="integrations.adminDepartmentAccessData" />
+        <add table="integrations.adminDataErrors" />
+        <add table="integrations.adminData_Log" />
+        <add table="integrations.adminData" />
+        <add table="dbo.SEC_Group_Admins" />
+        <add table="dbo.PositionSurveyDef" />
+        <add table="dbo.MessageUserMat" />
+        <add table="dbo.LicensesDef" />
+        <add table="dbo.ImportMatch" />
+        <add table="dbo.GovJobsCustNotes" />
+        <add table="dbo.BBUserTemplateMat" />
+        <add table="dbo.agencyPageLinks" />
+        <add table="dbo.BackgroundCheckGetMoreDetail_Log" />
+        <add table="dbo.TEMP_ISPEND_0" />
+        <add table="dbo.TEMP_ISPEND_1" />
+        <add table="dbo.JobSeekers" />
+        <add table="dbo.Migrations" />
+        <add table="dbo.EvaluationTemplateTasks" />
+        <add table="dbo.ReportTemplates" />
+        <add table="integrations.profilesInternationalAssessment_HOLD_XXX" />
+        <add table="dbo.CustomFieldOptionAns_HOLD_XXX" />
+        <add table="dbo.CustomFieldAns_HOLD_XXX" />
+        <add table="dbo.JS_MasterProfile_HOLD_XXX" />
+        <add table="dbo.EEOCodeDef" />
+        <add table="integrations.vendorLanguages" />
+        <add table="dbo.ErrorTracking" />
+        <add table="dbo.PersonIDDef" />
+        <add table="dbo.AgencyFields" />
+        <add table="dbo.AgencyFieldDef" />
+        <add table="toDelete.JS_PersonalProfile_DL" />
+        <add table="toDelete.JS_MasterProfile_DL" />
+        <add table="dbo.JS_UserDef_forcePasswordReset" />
+        <add table="dbo.JS_PrefCatMatrix" />
+        <add table="access.passwordAnswers" />
+        <add table="dbo.ReportBatch" />
+        <add table="dbo.ResumeSearchCache" />
+        <add table="dbo.TN_PositionGeoArea" />
+        <add table="integrations.newHireAvailableFieldsDef" />
+        <add table="dbo.SEC_Group_ReqUsers" />
+        <add table="dbo.TN_Department" />
+        <add table="dbo.TestUser" />
+        <add table="dbo.SEC_Group_Actions" />
+        <add table="dbo.JS_ContactInfo_Logger" />
+        <add table="dbo.SEC_ACL_Admin" />
+        <add table="dbo.Coursework" />
+        <add table="dbo.SEC_Groups" />
+        <add table="dbo.JS_MetroLocationMatrix" />
+        <add table="dbo.SEC_ACL" />
+        <add table="dbo.CandidateSearch" />
+        <add table="dbo.AdminGroups" />
+        <add table="dbo.BBReqUserTemplateMat" />
+        <add table="dbo.AdminGroupMatrix" />
+        <add table="dbo.TMS_ResultUpload" />
+        <add table="dbo.TMS_ResultTest" />
+        <add table="dbo.ReqApproval" />
+        <add table="dbo.BBEmpTemplateMat" />
+        <add table="dbo.BBTemplates" />
+        <add table="dbo.YahooFunctionCodes" />
+        <add table="integrations.jpMorganChaseParameters" />
+        <add table="access.mailServers" />
+        <add table="dbo.ReqLanguageMat" />
+        <add table="dbo.AuditReference" />
+        <add table="dbo.Audit" />
+        <add table="dbo.TransactionTrackingChange" />
+        <add table="dbo.ReqApprovalStepNotes" />
+        <add table="dbo.AuditReferenceType" />
+        <add table="dbo.Merge_JS_MasterProfile" />
+        <add table="dbo.AuditType" />
+        <add table="dbo.GovJobsEmployees" />
+        <add table="dbo.AuditAction" />
+        <add table="dbo.GovJobsCustNotesDef" />
+        <add table="dbo.ResumeSearchFailed" />
+        <add table="dbo.AdNetworkActionDef" />
+        <add table="dataMart.EmployersFact" />
+        <add table="dataMart.EmployersDimension" />
+        <add table="dbo.CandidateTestAns" />
+        <add table="dbo.CurrentJobList" />
+        <add table="dbo.OMRTest_dups" />
+        <add table="dbo.FilleAttach" />
+        <add table="dbo.ICRFieldMap" />
+        <add table="workflow.updatedFields" />
+        <add table="dbo.LoginHistory" />
+        <add table="dbo.PersonIDQuestion" />
+        <add table="dbo.JS_SearchPreferences" />
+        <add table="dbo.TN_County" />
+        <add table="dbo.ResumeSearchQuery" />
+        <add table="access.passwordQuestions" />
+        <add table="dbo.TN_PositionGeoJudicial" />
+        <add table="dbo.productVersions" />
+        <add table="dbo.MessageReqUserMat" />
+        <add table="dbo.Employers_ResumeConfirmVerbiage_Null_hotfix" />
+        <add table="twc.stateCodes" />
+        <add table="twc.militaryCodes" />
+        <add table="dbo.TN_PositionGeoDivision" />
+        <add table="dbo.TN_PositionGeoDistrict" />
+        <add table="dbo.TN_PositionGeoBreakdown" />
+        <add table="dbo.TN_Division" />
+        <add table="dbo.SessionTrack" />
+        <add table="dbo.OpenJobRequests" />
+        <add table="dbo.js_userdef_john_pink" />
+        <add table="integrations.classSpecDataCustomFields" />
+        <add table="dbo.requsers_tmp_PA" />
+        <add table="dbo.TN_PositionGeoRegion" />
+        <add table="dbo.JS_PersonalProfile_Temp_Mappings" />
+        <add table="dbo.rejects_bad_rejectcode" />
+        <add table="dbo.CustomFieldAnsTNBackup" />
+        <add table="dbo.TMS_ResultTestAns" />
+        <add table="dbo.UsageRule" />
+        <add table="dbo.zz_VenturaSSN" />
+        <add table="dbo.zz_SSNMatch" />
+        <add table="dbo.zz_SantaClaraEffectiveWageUpdates" />
+        <add table="dbo.ImportMatchTemp" />
+        <add table="dbo.SSONETCodes" />
+        <add table="dbo.tempAdAgencyJobMat" />
+        <add table="dbo.TmpEmailSend" />
+        <add table="dbo.tempClassData" />
+        <add table="dbo.ReqExtraHelpDef" />
+        <add table="dbo.ajb_pi_offices" />
+        <add table="dbo.ajb_pi_jobs" />
+        <add table="dbo.dtproperties" />
+        <add table="dbo.Invoices" />
+        <add table="integrations.adminData_Log" />
+        <add table="dbo.AppChangeLog" />
+        <add table="integrations.adminDepartmentNotificationData_Log" />
+        <add table="integrations.adminDepartmentAccessData_Log" />
+        <add table="integrations.adminSecurityRolesData_Log" />
+        <add table="dbo.BackgroundCheckGetMoreDetail_Log" />
+        <add table="integrations.bargainingUnitData_Log" />
+        <add table="integrations.reqUsersData_Log" />
+        <add table="integrations.classSpecData_Log" />
+        <add table="integrations.classSpecDataCustomFieldValues_Log" />
+        <add table="integrations.departmentData_Log" />
+        <add table="integrations.divisionData_Log" />
+        <add table="dbo.BackgroundCheckResult_Log" />
+        <add table="integrations.locationData_Log" />
+        <add table="integrations.occupationalGroupData_Log" />
+        <add table="integrations.physicalClassData_Log" />
+        <add table="integrations.reqUsersDepartmentData_Log" />
+        <add table="integrations.reqUsersDivisionData_Log" />
+        <add table="integrations.reqUsersGroupData_Log" />
+        <add table="dbo.JS_MasterProfile_Archive" />
+        <add table="dbo.CustomFieldAns_Archive" />
+        <add table="dbo.CustomFieldOptionAns_Archive" />
+        <add table="dbo.sysdtslog90" />
       </mappings>
-
       <mappings maptype="lookup">
-        <add table="dbo.SSOType"/>
+        <add table="dbo.SubAgencyDef" />
+        <add table="core.entityTypeDef" />
+        <add table="dbo.EvaluationStepTypeDef" />
+        <add table="dbo.ReferredDispositionDef" />
+        <add table="dbo.AgencyGridViewColumnTypeDef" />
+        <add table="dbo.SMEScoreDef" />
+        <add table="dbo.ExamTypeDef" />
+        <add table="dbo.TestDef" />
+        <add table="dbo.AgencyViewTypeDef" />
+        <add table="dbo.FormDef" />
+        <add table="dbo.ReqListTypeDef" />
+        <add table="dbo.DriverLicenseClassDef" />
+        <add table="dbo.CreditTypeDef" />
+        <add table="dbo.EligibleListTypeDef" />
+        <add table="dbo.positionStatusDef" />
+        <add table="dbo.SnapshotTypeDef" />
+        <add table="dbo.ListStatusDef" />
+        <add table="dbo.ActionTypeDef" />
+        <add table="dbo.AdditionalInfoDef" />
+        <add table="dbo.AgencySizeDef" />
+        <add table="dbo.SearchLocationDef" />
+        <add table="dbo.CountryDef" />
+        <add table="dbo.CustomerSourceDef" />
+        <add table="dbo.DisplaySalaryDef" />
+        <add table="dbo.EEOCategoryDef" />
+        <add table="dbo.HSHighestLevelDef" />
+        <add table="dbo.ReqNotificationTypeDef" />
+        <add table="dbo.JobTermDef" />
+        <add table="dbo.JS_EducationDef" />
+        <add table="dbo.JS_UserDef" />
+        <add table="dbo.LanguageDef" />
+        <add table="dbo.MonthsDef" />
+        <add table="dbo.NonStandardPaidDef" />
+        <add table="dbo.PositionTypeDef" />
+        <add table="dbo.RelocateDef" />
+        <add table="dbo.ReportDef" />
+        <add table="dbo.SalaryPaidDef" />
+        <add table="dbo.SchoolTypeDef" />
+        <add table="dbo.ResultFieldDef" />
+        <add table="dbo.ServiceLevelDef" />
+        <add table="dbo.ShiftTypeDef" />
+        <add table="dbo.SkillLevelDef" />
+        <add table="dbo.SuppQuestionGroupDef" />
+        <add table="dbo.WorkTypeDef" />
+        <add table="dbo.AgencyLinkTypeDef" />
+        <add table="dbo.BackgroundCheckPackageDef" />
+        <add table="dbo.BackgroundCheckStatusDef" />
+        <add table="dbo.HRISPayrollSystemDef" />
+        <add table="dbo.TMS_TestTypeDef" />
+        <add table="dbo.BackgroundCheckScreeningDef" />
+        <add table="dbo.SocialNetworkDef" />
+        <add table="dbo.MetroLocationDef" />
+        <add table="dbo.SuppQuestionEEODef" />
+        <add table="dbo.AdTypeDef" />
+        <add table="dbo.SchoolDegreeDef" />
+        <add table="dbo.SuppQuestionTypeDef" />
+        <add table="dbo.NotificationTypeDef" />
+        <add table="dbo.ResultDef" />
+        <add table="dbo.TaskPriorityDef" />
+        <add table="dbo.EducationLevelDef" />
+        <add table="dbo.CandidateStepActionDef" />
+        <add table="dbo.TaskStatusDef" />
+        <add table="dbo.EligibleListDef" />
+        <add table="dbo.ReportCategoryDef" />
+        <add table="dbo.LocationDef" />
+        <add table="dbo.OCGroupDef" />
+        <add table="dbo.PhysicalClassDef" />
+        <add table="dbo.ResourceTypeDef" />
+        <add table="dbo.DataTypeDef" />
+        <add table="dbo.TMS_QuestionTypeDef" />
       </mappings>
-    </database>-->
+      <mappings maptype="relation">
+        <add table="dbo.DepartmentProxy" column="DepartmentId" />
+        <add table="dbo.DivisionProxy" column="DivisionId" />
+        <add table="dbo.ClassSpecMasterProxy" column="ClassSpecificationId,ClassSpecID" />
+        <add table="dbo.Jobs" column="JobId" />
+        <add table="dbo.Administrators" column="AdminId" />
+        <add table="dbo.ResumesReceived" column="ResumeReceivedId" />
+        <add table="dbo.SuppQuestions" column="QuestionId" />
+        <add table="dbo.ExamPlan" column="ExamPlanID" />
+        <add table="dbo.Requisitions" column="ReqID" />
+      </mappings>
+    </database>
+    <!--sso configuration-->
+    <database name="sso" target="test">
+      <mappings maptype="ignore">
+        <add table="Migrations.*" />
+      </mappings>
+      <mappings maptype="lookup">
+        <add table="dbo.SSOType" />
+      </mappings>
+    </database>
   </migrationSection>
+  <system.web>
+    <membership defaultProvider="ClientAuthenticationMembershipProvider">
+      <providers>
+        <add name="ClientAuthenticationMembershipProvider" type="System.Web.ClientServices.Providers.ClientFormsAuthenticationMembershipProvider, System.Web.Extensions, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" serviceUri="" />
+      </providers>
+    </membership>
+    <roleManager defaultProvider="ClientRoleProvider" enabled="true">
+      <providers>
+        <add name="ClientRoleProvider" type="System.Web.ClientServices.Providers.ClientRoleProvider, System.Web.Extensions, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" serviceUri="" cacheTimeout="86400" />
+      </providers>
+    </roleManager>
+  </system.web>
 </configuration>
