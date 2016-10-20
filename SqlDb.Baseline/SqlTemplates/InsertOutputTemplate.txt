@@ -33,6 +33,7 @@ SELECT 1470
 IF NOT EXISTS (SELECT 1 FROM Migrations.Baseline WHERE TableName = '@tablename') 
    AND EXISTS (SELECT 1 from INFORMATION_SCHEMA.TABLES WHERE '@tablename' = TABLE_SCHEMA + '.' + TABLE_NAME)
 BEGIN 
+	print 'Processing ' + @tablename + ' ...'
 
 	@statement  
 
