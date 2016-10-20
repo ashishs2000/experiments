@@ -25,7 +25,7 @@ namespace SqlDb.Baseline.Helpers
             foreach (var summary in Summaries)
             {
                 LogFile.Info(summary.ToString());
-                Logger.LogInfo(summary.ToString());
+                ConsoleLogger.LogInfo(summary.ToString());
             }
         }
 

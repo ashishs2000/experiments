@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.Entity.Design.PluralizationServices;
 using System.Data.SqlClient;
 using System.Globalization;
+using System.Text;
 
 namespace SqlDb.Baseline.Helpers
 {
@@ -25,11 +26,21 @@ namespace SqlDb.Baseline.Helpers
             }
         }
 
-        public static void AddHeader(this FileWriter writer, string heading)
+        public static string AddHeader(this FileWriter writer, string heading)
         {
-            writer.WriteLine("".PadRight(50, '-'));
-            writer.WriteLine($"-- {heading}");
-            writer.WriteLine("".PadRight(50, '-'));
+            var builder = new StringBuilder();
+            builder.AppendLine("--".PadRight(50, '#'));
+            builder.AppendLine($"-- {heading}");
+            builder.AppendLine("--".PadRight(50, '#'));
+
+            var header = builder.ToString();
+            writer.Write(header);
+            return header;
+        }
+
+        public static void LogInfo(this string data)
+        {
+            LogFile.Info(data);
         }
 
 

@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<scripts>
+  <script table="dbo.JS_UserDef">
+    <![CDATA[
+        INSERT INTO @target.Js_UserDef ([JobSeekerID] ,[JS_Username],[Email] ,[PasswordHint] ,[PasswordAnswer] ,[LastVisit] ,[LastUpdated] ,[DateCreated] ,[NotificationType_cd] ,[firstName] ,[middleName] ,[lastName] ,[address1] ,[address2] ,[city] ,[stateID] ,[zip] ,[countryID] ,[homePhone] ,[alternatePhone] ,[oldPassword] ,[js_password] ,[lastPasswordChange] ,[failedLogins] ,[lastLoginFailure] ,[forcePasswordReset])
+        SELECT [JobSeekerID] ,[JS_Username],[Email] ,[PasswordHint] ,[PasswordAnswer] ,[LastVisit] ,[LastUpdated] ,[DateCreated] ,[NotificationType_cd] ,[firstName] ,[middleName] ,[lastName] ,[address1] ,[address2] ,[city] ,[stateID] ,[zip] ,[countryID] ,[homePhone] ,[alternatePhone] ,[oldPassword] ,[js_password] ,[lastPasswordChange] ,[failedLogins] ,[lastLoginFailure] ,[forcePasswordReset]
+        FROM [@source].[dbo].[JS_UserDef] js        
+        WHERE js.JobSeekerID IN (SELECT DISTINCT JS_UserID FROM JS_MasterProfile)
+    ]]>
+  </script>
+</scripts>

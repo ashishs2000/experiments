@@ -15,6 +15,7 @@ namespace SqlDb.Baseline.QueryCommand
 
         public bool ShouldMigrateLookupTable { get; } = true;
         public bool ShouldMigrateTransactionTable { get; } = true;
+        public virtual bool ShouldSkipCustomScripts { get; } = false;
 
         protected BaseQueryCommand(IApplicationSetting appSettings)
         {

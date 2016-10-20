@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using SqlDb.Baseline.Helpers;
 using SqlDb.Baseline.Models;
 
 namespace SqlDb.Baseline.ConfigSections
@@ -25,7 +26,7 @@ namespace SqlDb.Baseline.ConfigSections
 
         public AppConfiguration(CommandType commandType)
         {
-            Logger.LogInfo("Reading Configurations");
+            ConsoleLogger.LogInfo("Reading Configurations");
 
             CommandType = commandType;
             OutputLocation = ReadOrDefaultProperty("OutputLocation", "Output");

@@ -1,5 +1,6 @@
 ﻿using System;
 using SqlDb.Baseline.ConfigSections;
+using SqlDb.Baseline.Helpers;
 using SqlDb.Baseline.Query;
 using SqlDb.Baseline.QueryCommand;
 
@@ -21,11 +22,11 @@ namespace SqlDb.Baseline
             var tables = new TableQuery(_configuration);
             var relations = new TableRelationshipQuery(_configuration);
 
-            Logger.LogInfo("Parsing and analysing gathered database information");
+            ConsoleLogger.LogInfo("Parsing and analysing gathered database information");
             var database = new DatabaseParser(tables, relations, _configuration);
             database.LoadRelations();
 
-            Logger.LogInfo("Generating baseline script");
+            ConsoleLogger.LogInfo("Generating baseline script");
 
             var command = generateInsertScript
                 ? (IQueryCommand) new InsertQueryCommand(_appConfiguration, _configuration)
@@ -34,7 +35,7 @@ namespace SqlDb.Baseline
             var query = new BaselineScriptGenerator(database, _configuration, command);
             query.Generate();
 
-            Logger.LogInfo($"Baseline script path - '{_configuration.OutputLocation}'");
+            ConsoleLogger.LogInfo($"Baseline script path - '{_configuration.OutputLocation}'");
         }
 
         public void Dispose()

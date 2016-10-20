@@ -61,8 +61,8 @@ namespace SqlDb.Baseline
           
         private void AppendRelationWhichCanLinkToEmployer()
         {
-            Logger.LogInfo("Searching possible relationships");
-            Logger.SetIndent();
+            ConsoleLogger.LogInfo("Searching possible relationships");
+            ConsoleLogger.SetIndent();
 
             AddPossibleRelationships();
             PrintSqlRelationStats();
@@ -76,7 +76,7 @@ namespace SqlDb.Baseline
             decimal total = _dbSettings.TableToEmployerMappers.Count;
             var lastPercentReported = 0;
 
-            Console.Out.Write("".PadRight(Logger.CurrentIndent,' ') + "Percent completed - ");
+            Console.Out.Write("".PadRight(ConsoleLogger.CurrentIndent,' ') + "Percent completed - ");
             foreach (var mapper in _dbSettings.TableToEmployerMappers)
             {
                 iteratorCount++;
@@ -106,11 +106,11 @@ namespace SqlDb.Baseline
             Console.Out.WriteLine("");
 
             SummaryRecorder.Current.CustomDatabaseRelationCount = foundRelations;
-            Logger.LogInfo($"Total possible relationships found - {foundRelations}");
+            ConsoleLogger.LogInfo($"Total possible relationships found - {foundRelations}");
             if (foundRelations <= 0)
                 LogFile.Info("     No relation found");
 
-            Logger.ResetIndent();
+            ConsoleLogger.ResetIndent();
         }
 
         private void AddPossibleRelationships()

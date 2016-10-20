@@ -44,6 +44,9 @@ namespace SqlDb.Baseline.ConfigSections
         [ConfigurationProperty("skip",DefaultValue = false)]
         public bool Skip => Convert.ToBoolean(this["skip"]);
 
+        [ConfigurationProperty("custom")]
+        public string CustomScriptFile => this["custom"].ToString();
+
         [ConfigurationProperty("", IsDefaultCollection = true)]
         public MappingConfigurationCollection Mappings => (MappingConfigurationCollection)base[""];
 
@@ -117,5 +120,6 @@ namespace SqlDb.Baseline.ConfigSections
     {
         string SourceDatabase { get; }
         string TargetDatabase { get; }
+        string CustomScriptFile { get; }
     }
 }

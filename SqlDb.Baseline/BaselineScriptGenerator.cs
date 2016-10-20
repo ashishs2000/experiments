@@ -16,6 +16,8 @@ namespace SqlDb.Baseline
         private readonly List<DbTable> _missing = new List<DbTable>();
         private readonly List<string> _tableCovered = new List<string>();
         private readonly List<string> _tableSkipped = new List<string>();
+        private int _counter = 0;
+        private int NextCounter => _counter = _counter + 1;
 
         private FileWriter ScriptWriter => _dbSettings.ScriptLogger;
 
@@ -28,6 +30,14 @@ namespace SqlDb.Baseline
 
         public void Generate()
         {
+            var customScripts = new List<CustomScript>();
+            if (!_command.ShouldSkipCustomScripts)
+            {
+                customScripts = CustomScripts.GetCustomScript(_dbSettings);
+                foreach (var customScript in customScripts)
+                    _tableCovered.Add(customScript.Table);
+            }
+            
             ScriptWriter.WriteLine(_command.Template.Before(_dbSettings.TargetDatabase));
 
             if (_command.ShouldMigrateLookupTable)
@@ -35,6 +45,9 @@ namespace SqlDb.Baseline
 
             if (_command.ShouldMigrateTransactionTable)
                 CreateInsertStatementWithTree();
+
+            if (!_command.ShouldSkipCustomScripts)
+                AppendCustomScripts(customScripts);
 
             LogMissingFile();
             LogSkippedTables();
@@ -47,9 +60,8 @@ namespace SqlDb.Baseline
 
         private void AppendLookupTableMigration()
         {
-            var tableCounter = 1;
             var migrated = false;
-            LogFile.HeaderH3("Lookup Table Migrations");
+            ScriptWriter.AddHeader("Lookup Table Migrations").LogInfo();
 
             foreach (var tableName in _dbSettings.LookupTables)
             {
@@ -61,23 +73,21 @@ namespace SqlDb.Baseline
                     continue;
 
                 var statement =  _command.CreateInitialStatement(_dbSettings,table, "a");
-                statement = _command.InjectQuery(tableCounter, table, statement);
+                statement = _command.InjectQuery(NextCounter, table, statement);
 
-                ScriptWriter.Write(statement);
+                ScriptWriter.WriteLine(statement);
                 _tableCovered.Add(table.FullName);
                 migrated = true;
-
-                tableCounter++;
             }
 
             if (migrated)
                 LogFile.Info("  No Lookup table found");
         }
-
+        
         private void CreateInsertStatementWithTree()
         {
-            ScriptWriter.AddHeader("Transactional Table Migrations");
-            var tableCounter = 1;
+            ScriptWriter.AddHeader("Transactional Table Migrations").LogInfo();
+
             foreach (var tree in _databaseParser.TreeRelations)
             {
                 var table = tree.Value.Table;
@@ -94,11 +104,10 @@ namespace SqlDb.Baseline
                 }
 
                 var statement = builder.ToString();
-                statement = _command.InjectQuery(tableCounter, table, statement);
-                ScriptWriter.Write(statement);
+                statement = _command.InjectQuery(NextCounter, table, statement);
+                ScriptWriter.WriteLine(statement);
 
                 _tableCovered.Add(table.FullName);
-                tableCounter++;
             }
         }
 
@@ -134,6 +143,22 @@ namespace SqlDb.Baseline
                 BuildInsertStatement(children.RightTree, aliasCounter, queryBuilder, joins);
 
                 joins.RemoveAt(joins.Count - 1);
+            }
+        }
+
+        private void AppendCustomScripts(IEnumerable<CustomScript> scripts)
+        {
+            ScriptWriter.AddHeader("Custom Table Migrations").LogInfo();
+
+            foreach (var script in scripts)
+            {
+                var table = _databaseParser.Tables.GetTable(script.Table);
+                if (table == null)
+                    continue;
+
+                var statement = _command.InjectQuery(NextCounter, table, script.Value);
+                ScriptWriter.WriteLine(statement);
+                _tableCovered.Add(table.FullName);
             }
         }
 
