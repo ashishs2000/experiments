@@ -38,14 +38,13 @@ namespace SqlDb.Baseline.Models
 
     public class EmployerJoin : InnerJoin
     {
-        private readonly string _leftAlias;
         public EmployerJoin(IDatabaseConfig config, string leftAlias) 
             : base(config)
         {
-            _leftAlias = leftAlias;
             RightTable = "@EmployerIds";
             RightColumn = "EmployerId";
             LeftColumn = "EmployerId";
+            LeftAlias = leftAlias;
             RightAlias = "eids";
         }
         
