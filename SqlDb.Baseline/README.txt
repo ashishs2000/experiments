@@ -18,7 +18,8 @@
 
 			SELECT TABLE_SCHEMA + '.' + TABLE_NAME as Name 
 			FROM INFORMATION_SCHEMA.TABLES 
-			WHERE TABLE_NAME like '%def'
+			WHERE (TABLE_NAME like '%def' OR TABLE_NAME like '%delete%')
+			 AND  TABLE_TYPE = 'table'
 		)
 		Select '        <add table="' + Name + '" />' 
 		from Lookups
@@ -42,7 +43,8 @@
 
 			SELECT TABLE_SCHEMA + '.' + TABLE_NAME as Name 
 			FROM INFORMATION_SCHEMA.TABLES 
-			WHERE TABLE_NAME like '%Log'
+			WHERE TABLE_NAME like '%Log' 
+			 AND  TABLE_TYPE = 'table'
 		)
 		SELECT '        <add table="' + Name + '" />'
 		FROM UnUsedTables
