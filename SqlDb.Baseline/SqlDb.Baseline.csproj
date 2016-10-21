@@ -79,7 +79,9 @@
     <Compile Include="Models\DbTable.cs" />
     <Compile Include="Models\DbTableRelationship.cs" />
     <Compile Include="Models\Tree.cs" />
-    <Content Include="README.txt" />
+    <Content Include="README.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Sample-Custom-Script.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
