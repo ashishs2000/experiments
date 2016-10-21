@@ -9,6 +9,7 @@ namespace SqlDb.Baseline.ConfigSections
 {
     public interface IApplicationSetting
     {
+        string QueryScriptFile { get; }
         SqlTemplate InsertTemplate { get; }
         SqlTemplate SelectTemplate { get; }
         CommandType CommandType { get; }
@@ -19,6 +20,7 @@ namespace SqlDb.Baseline.ConfigSections
     {
         private readonly ProductsConfigurationSection _configSection;
         public IList<string> Databases { get; }
+        public string QueryScriptFile { get; }
         public SqlTemplate InsertTemplate { get; }
         public SqlTemplate SelectTemplate { get; }
         public string OutputLocation { get; }
@@ -30,6 +32,7 @@ namespace SqlDb.Baseline.ConfigSections
 
             CommandType = commandType;
             OutputLocation = ReadOrDefaultProperty("OutputLocation", "Output");
+            QueryScriptFile = ReadOrDefaultProperty("QueryScriptFile", "QueryScript.xml");
 
             _configSection = ProductsConfigurationSection.GetConfiguration(this);
             Databases = _configSection.Databases.Select(p => p.SourceDatabase).ToList();

@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<scripts>
+  <script type="TABLE_QUERY">
+    <![CDATA[
+          SELECT col.TABLE_SCHEMA, col.TABLE_NAME, col.COLUMN_NAME, PT.COLUMN_NAME as [PrimaryKey]
+          FROM INFORMATION_SCHEMA.COLUMNS col
+          INNER JOIN (
+              SELECT i1.TABLE_NAME, i2.COLUMN_NAME, i1.TABLE_SCHEMA
+              FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS i1
+              INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE i2 ON i1.CONSTRAINT_NAME = i2.CONSTRAINT_NAME
+              WHERE i1.CONSTRAINT_TYPE = 'PRIMARY KEY'
+          ) PT ON col.TABLE_NAME = PT.TABLE_NAME AND col.TABLE_SCHEMA = PT.TABLE_SCHEMA
+          WHERE COLUMNPROPERTY(OBJECT_ID(col.TABLE_SCHEMA+'.'+col.TABLE_NAME),col.COLUMN_NAME,'IsComputed') = 0
+          ORDER BY col.TABLE_NAME, ORDINAL_POSITION
+    ]]>
+  </script>
+
+  <script type="VIEW_QUERY">
+    <![CDATA[
+          SELECT v.TABLE_SCHEMA, v.TABLE_NAME, col.COLUMN_NAME
+          FROM INFORMATION_SCHEMA.VIEWS v
+          JOIN INFORMATION_SCHEMA.COLUMNS col on v.TABLE_SCHEMA = col.TABLE_SCHEMA AND v.TABLE_NAME = col.TABLE_NAME
+          ORDER BY v.TABLE_SCHEMA, v.TABLE_NAME, col.ORDINAL_POSITION
+    ]]>
+  </script>
+
+  <script type="TABLE_IDENTITY_QUERY">
+    <![CDATA[
+          SELECT LOWER(sc.name + '.' + obj.name) AS TABLE_NAME
+          FROM sys.columns col
+          JOIN sys.objects obj ON col.object_id = obj.object_id
+          JOIN sys.schemas sc ON sc.schema_id = obj.schema_id
+          WHERE col.is_identity=1
+          AND obj.type in (N'U')
+    ]]>
+  </script>
+
+  <script type="TABLE_RELATIONSHIP_QUERY">
+    <![CDATA[
+          SELECT
+          PK_Table = PK.TABLE_SCHEMA + '.' + PK.TABLE_NAME,
+          PK_Column = PT.COLUMN_NAME,
+          K_Table = Fk.TABLE_SCHEMA + '.' + FK.TABLE_NAME,
+          FK_Column = CU.COLUMN_NAME
+          FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS C
+          INNER JOIN INFORMATION_SCHEMA.TABLE_CONSTRAINTS FK ON C.CONSTRAINT_NAME = FK.CONSTRAINT_NAME
+          INNER JOIN INFORMATION_SCHEMA.TABLE_CONSTRAINTS PK ON C.UNIQUE_CONSTRAINT_NAME = PK.CONSTRAINT_NAME
+          INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE CU ON C.CONSTRAINT_NAME = CU.CONSTRAINT_NAME
+          INNER JOIN (
+              SELECT i1.TABLE_NAME, i2.COLUMN_NAME
+              FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS i1
+              INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE i2 ON i1.CONSTRAINT_NAME = i2.CONSTRAINT_NAME
+              WHERE i1.CONSTRAINT_TYPE = 'PRIMARY KEY'
+          ) PT ON PT.TABLE_NAME = PK.TABLE_NAME
+          WHERE FK.Table_NAME like '%Evaluation%'
+          ORDER BY 3,1
+    ]]>
+  </script>
+</scripts>

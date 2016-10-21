@@ -11,32 +11,14 @@ namespace SqlDb.Baseline.Query
 {
     public class TableRelationshipQuery
     {
-        private const string TABLE_QUERY = @"SELECT
-                                            PK_Table = PK.TABLE_SCHEMA + '.' + PK.TABLE_NAME,
-                                            PK_Column = PT.COLUMN_NAME,
-                                            K_Table = Fk.TABLE_SCHEMA + '.' + FK.TABLE_NAME,
-                                            FK_Column = CU.COLUMN_NAME
-                                            FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS C
-                                            INNER JOIN INFORMATION_SCHEMA.TABLE_CONSTRAINTS FK ON C.CONSTRAINT_NAME = FK.CONSTRAINT_NAME
-                                            INNER JOIN INFORMATION_SCHEMA.TABLE_CONSTRAINTS PK ON C.UNIQUE_CONSTRAINT_NAME = PK.CONSTRAINT_NAME
-                                            INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE CU ON C.CONSTRAINT_NAME = CU.CONSTRAINT_NAME
-                                            INNER JOIN (
-                                                SELECT i1.TABLE_NAME, i2.COLUMN_NAME
-                                                FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS i1
-                                                INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE i2 ON i1.CONSTRAINT_NAME = i2.CONSTRAINT_NAME
-                                                WHERE i1.CONSTRAINT_TYPE = 'PRIMARY KEY'
-                                            ) PT ON PT.TABLE_NAME = PK.TABLE_NAME
-                                            WHERE FK.Table_NAME like '%Evaluation%'
-                                            ORDER BY 3,1";
-
         public List<DbTableRelationship> Relationships { get; }
-        public TableRelationshipQuery(DatabaseElementConfiguration configuration)
+        public TableRelationshipQuery(QueryScripts queryScripts, IDatabaseConfig configuration)
         {
             var conString = ConfigurationManager.ConnectionStrings[configuration.SourceDatabase].ConnectionString;
 
             Relationships = new List<DbTableRelationship>();
             var con = new SqlConnection(conString);
-            con.Execute(TABLE_QUERY, AddTableInfo);
+            con.Execute(queryScripts.TableRelationshipQuery, AddTableInfo);
 
             SummaryRecorder.Current.DatabaseRelationCount = Relationships.Count;
         }

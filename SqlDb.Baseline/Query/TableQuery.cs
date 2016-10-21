@@ -10,30 +10,7 @@ namespace SqlDb.Baseline.Query
 {
     public class TableQuery
     {
-        private const string TABLE_QUERY = @"SELECT col.TABLE_SCHEMA, col.TABLE_NAME, col.COLUMN_NAME, PT.COLUMN_NAME as [PrimaryKey]
-                                            FROM INFORMATION_SCHEMA.COLUMNS col
-                                            INNER JOIN (
-                                                SELECT i1.TABLE_NAME, i2.COLUMN_NAME, i1.TABLE_SCHEMA
-                                                FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS i1
-                                                INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE i2 ON i1.CONSTRAINT_NAME = i2.CONSTRAINT_NAME
-                                                WHERE i1.CONSTRAINT_TYPE = 'PRIMARY KEY'
-                                            ) PT ON col.TABLE_NAME = PT.TABLE_NAME AND col.TABLE_SCHEMA = PT.TABLE_SCHEMA
-                                            ORDER BY col.TABLE_NAME, ORDINAL_POSITION";
-
-        private const string VIEW_QUERY = @"
-                                        SELECT v.TABLE_SCHEMA, v.TABLE_NAME, col.COLUMN_NAME
-                                        FROM INFORMATION_SCHEMA.VIEWS v
-                                        JOIN INFORMATION_SCHEMA.COLUMNS col on v.TABLE_SCHEMA = col.TABLE_SCHEMA AND v.TABLE_NAME = col.TABLE_NAME
-                                        ORDER BY v.TABLE_SCHEMA, v.TABLE_NAME, col.ORDINAL_POSITION";
-
-        private const string TABLE_IDENTITY = @"SELECT LOWER(sc.name + '.' + obj.name) AS TABLE_NAME
-                                        FROM sys.columns col
-                                        JOIN sys.objects obj ON col.object_id = obj.object_id
-                                        JOIN sys.schemas sc ON sc.schema_id = obj.schema_id
-                                        WHERE col.is_identity=1
-                                        AND obj.type in (N'U')";
-
-        private Dictionary<string, DbTable> _tables = null;
+        private Dictionary<string, DbTable> _tables;
 
         public Dictionary<string, DbTable> AllObjects { get; } = new Dictionary<string, DbTable>();
         public IReadOnlyDictionary<string, DbTable> OnlyTables
@@ -50,20 +27,20 @@ namespace SqlDb.Baseline.Query
             }
         }
 
-        public TableQuery(DatabaseElementConfiguration configuration)
+        public TableQuery(QueryScripts queryScripts, IDatabaseConfig configuration)
         {
             var conString = ConfigurationManager.ConnectionStrings[configuration.SourceDatabase].ConnectionString;
 
             var con = new SqlConnection(conString);
-            con.Execute(TABLE_QUERY,AddTableInfo);
+            con.Execute(queryScripts.TableQuery, AddTableInfo);
             SummaryRecorder.Current.TableCount = OnlyTables.Count;
 
             var con2 = new SqlConnection(conString);
-            con2.Execute(VIEW_QUERY, AddViewInfo);
+            con2.Execute(queryScripts.ViewQuery, AddViewInfo);
             SummaryRecorder.Current.ViewCount = AllObjects.Count - SummaryRecorder.Current.TableCount;
 
             var con3 = new SqlConnection(conString);
-            con3.Execute(TABLE_IDENTITY, MapIdentityColumn);
+            con3.Execute(queryScripts.TableIdentityQuery, MapIdentityColumn);
         }
 
         private void AddTableInfo(SqlDataReader reader)

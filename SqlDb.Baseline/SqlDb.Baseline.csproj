@@ -67,6 +67,7 @@
     <Compile Include="Helpers\SummaryRecorder.cs" />
     <Compile Include="Models\CustomScripts.cs" />
     <Compile Include="Models\InnerJoin.cs" />
+    <Compile Include="Models\QueryScripts.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QueryCommand\InsertQueryCommand.cs" />
@@ -82,6 +83,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="SqlTemplates\InsertOutputTemplate.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="QueryScript.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <None Include="SqlTemplates\SelectOutputTemplate.txt">

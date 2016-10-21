@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.RegularExpressions;
 using SqlDb.Baseline.ConfigSections;
 using SqlDb.Baseline.Helpers;
+using SqlDb.Baseline.Models;
 
 namespace SqlDb.Baseline
 {
@@ -16,8 +16,10 @@ namespace SqlDb.Baseline
                 var command = GetCommand(args);
 
                 LogFile.HeaderH1($"Start Execution at {DateTime.Now}");
-                   
+
                 var configurations = new AppConfiguration(command);
+                var scripts = QueryScripts.Load(configurations);
+
                 foreach (var database in configurations.Databases)
                 {
                     var dbConfiguration = configurations.GetDatabaseSetting(database);
@@ -29,7 +31,7 @@ namespace SqlDb.Baseline
                     ConsoleLogger.LogInfo($"Start Processing '{database}'");
                     ConsoleLogger.SetIndent();
 
-                    using (var runner = new DatabaseRunner(configurations, dbConfiguration))
+                    using (var runner = new DatabaseRunner(configurations, dbConfiguration, scripts))
                         runner.Execute(command == CommandType.Insert);
 
                     ConsoleLogger.ResetAllIndent();
