@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <appSettings>
+    <add key="sourcePath" value="appSettings.config.source"/>
+    <add key="targetPath" value="C:\SourceCode\config\dev\webdata\platform\ConfigurationFiles\appSettings.config.transform"/>
+    <add key="outputPath" value="test"/>
+    <add key="appendChanges" value="true"/>
+  </appSettings>
+</configuration>
