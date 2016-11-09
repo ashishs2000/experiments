@@ -10,6 +10,7 @@ namespace Algorithms
         {
             try
             {
+                new LanguageParser().Run();
                 //DynamicMain.Instance.Run();
 
                 //var extension = new ExtensionFieldHandler();

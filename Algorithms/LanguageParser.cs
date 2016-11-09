@@ -7,150 +7,105 @@ namespace Algorithms
     {
         public void Run()
         {
-            var commands = new List<BaseCommand>();
-            commands.Add(new BaseCommand("if"));
-            commands.Add(new BaseCommand("select1"));
-            commands.Add(new BaseCommand("elseif"));
-            commands.Add(new BaseCommand("select2"));
-            commands.Add(new BaseCommand("if"));
-            commands.Add(new BaseCommand("select3"));
-            commands.Add(new BaseCommand("endif"));
-            commands.Add(new BaseCommand("endif"));
-
-            var blocks = new Stack<BaseTestBlock>();
-            var blockAndCommands = new List<object>();
-            foreach (var baseCommand in commands)
+            var commands = new List<BaseCommand>
             {
-                BaseTestBlock block = null;
+                new BaseCommand("if"),
+                new BaseCommand("select1"),
+                new BaseCommand("elseif"),
+                new BaseCommand("select2"),
+                new BaseCommand("if"),
+                new BaseCommand("select3"),
+                new BaseCommand("else"),
+                new BaseCommand("select4"),
+                new BaseCommand("endif"),
+                new BaseCommand("endif"),
+
+                new BaseCommand("while"),
+                new BaseCommand("if"),
+                new BaseCommand("select 12 "),
+                new BaseCommand("else"),
+                new BaseCommand("select 23"),
+                new BaseCommand("endif"),
+                new BaseCommand("endwhile"),
+            };
+
+            var commandQueue = new CommandQueue(commands);
+            commandQueue.Process();
+        }
+    }
+
+    public class CommandQueue : Queue<BaseCommand>
+    {
+        private readonly IEnumerable<BaseCommand> _commands;
+        public CommandQueue(IEnumerable<BaseCommand> commands)
+        {
+            _commands = commands;
+        }
+
+        public void Process()
+        {
+            var blockstack = new Stack<BaseBlockCommand>();
+            foreach (var baseCommand in _commands)
+            {
+                BaseBlockCommand blockCommand = null;
                 switch (baseCommand.Command)
                 {
                     case "if":
-                        block = new IfBlock();
+                        blockCommand = new IfBlockCommand();
                         break;
                     case "elseif":
-                    {
-                        var ifBlock = blocks.Peek().As<IfBlock>();
-                        ifBlock.AddElseIfBlock();
-                        continue;
-                    }
+                        {
+                            var ifBlock = blockstack.Peek().As<IfBlockCommand>();
+                            blockCommand = ifBlock.CreateIfElseBlock();
+                            break;
+                        }
                     case "else":
-                    {
-                        var ifBlock = blocks.Peek().As<IfBlock>();
-                        ifBlock.AddElseBlock();
-                        continue;
-                    }
+                        {
+                            var ifBlock = blockstack.Peek().As<IfBlockCommand>();
+                            blockCommand = ifBlock.CreateElseBlock();
+                            break;
+                        }
                     case "while":
-                        block = new WhileBlock();
+                        blockCommand = new WhileBlockCommand();
                         break;
                     case "for":
-                        block = new ForBlock();
+                        blockCommand = new ForBlockCommand();
                         break;
                     case "endif":
                     case "endfor":
                     case "endwhile":
-                        var b = blocks.Pop();
-                        if (!blocks.Any())
-                            blockAndCommands.Add(b);
+                        while (true)
+                        {
+                            if(!blockstack.Any())
+                                break;
+
+                            blockCommand = blockstack.Pop();
+                            if (blockCommand.IsCommandEndTag(baseCommand.Command))
+                                break;
+                        }
+
+                        if (!blockstack.Any())
+                            this.Enqueue(blockCommand);
                         continue;
                 }
 
-                if (block != null)
+                if (blockCommand != null)
                 {
-                    if (blocks.Any())
-                        blocks.Peek().AddBlock(block);
-                    blocks.Push(block);
+                    if (blockstack.Any())
+                        blockstack.Peek().AddCommand(blockCommand);
+                    blockstack.Push(blockCommand);
                     continue;
                 }
 
-                if (blocks.Any())
+                if (blockstack.Any())
                 {
-                    blocks.Peek().AddCommand(baseCommand);
+                    blockstack.Peek().AddCommand(baseCommand);
                     continue;
                 }
-                blockAndCommands.Add(baseCommand);
+                this.Enqueue(baseCommand);
             }
         }
     }
-
-    
-
-
-    public interface ITestBlock
-    {
-        //void ParseCommand(BaseCommand command);
-    }
-
-    public abstract class BaseTestBlock : ITestBlock
-    {
-        protected readonly IList<BaseCommand> Commands = new List<BaseCommand>();
-        protected readonly Queue<BaseTestBlock> Blocks = new Queue<BaseTestBlock>();
-        
-        public virtual void AddCommand(BaseCommand command)
-        {
-            Commands.Add(command);
-        }
-
-        public virtual void AddBlock(BaseTestBlock testBlock)
-        {
-            Blocks.Enqueue(testBlock);
-        }
-        
-        public T As<T>() where T : BaseTestBlock
-        {
-            return (T)this;
-        }
-
-        public bool IsStartBlock(BaseCommand command)
-        {
-            return command.Command.Equals("if") || command.Command.Equals("while") || command.Command.Equals("for");
-        }
-
-        public bool IsEndBlock(BaseCommand command)
-        {
-            return command.Command.Equals("endif") || command.Command.Equals("endWhile") || command.Command.Equals("endfor");
-        }
-    }
-    
-    public class IfBlock : BaseTestBlock
-    {
-        private IfBlock _lastBlock;
-        public void AddElseIfBlock()
-        {
-            base.AddBlock(_lastBlock = new ElseIfBlock());
-        }
-
-        public void AddElseBlock()
-        {
-            base.AddBlock(_lastBlock = new ElseBlock());
-        }
-
-        public override void AddCommand(BaseCommand command)
-        {
-            if (_lastBlock != null)
-            {
-                _lastBlock.AddCommand(command);
-                return;
-            }
-            base.AddCommand(command);
-        }
-    }
-
-    public class ElseIfBlock : IfBlock
-    {
-    }
-
-    public class ElseBlock : IfBlock
-    {
-    }
-
-    public class WhileBlock : BaseTestBlock
-    {
-    }
-
-    public class ForBlock : BaseTestBlock
-    {
-    }
-    
 
     public class BaseCommand
     {
@@ -161,5 +116,114 @@ namespace Algorithms
 
         public string Command { get; private set; }
         public override string ToString() => Command;
+    }
+
+    public abstract class BaseBlockCommand : BaseCommand
+    {
+        protected readonly Queue<BaseCommand> Blocks = new Queue<BaseCommand>();
+        public abstract bool IsCommandEndTag(string tag);
+
+        protected BaseBlockCommand(string command) : base(command)
+        {
+        }
+
+        public virtual void AddCommand(BaseCommand command)
+        {
+            Blocks.Enqueue(command);
+        }
+        
+        public T As<T>() where T : BaseBlockCommand
+        {
+            return (T)this;
+        }
+    }
+    
+    public class IfBlockCommand : BaseBlockCommand
+    {   
+        private IfBlockCommand _lastBlockCommand;
+        public IfBlockCommand() : base("if")
+        {
+        }
+
+        protected IfBlockCommand(string command) : base(command)
+        {
+        }
+
+        public ElseIfBlockCommand CreateIfElseBlock()
+        {
+            var command = new ElseIfBlockCommand();
+            _lastBlockCommand = command;
+            return command;
+        }
+
+        public ElseBlockCommand CreateElseBlock()
+        {
+            var command = new ElseBlockCommand();
+            _lastBlockCommand = command;
+            return command;
+        }
+
+        public override bool IsCommandEndTag(string tag)
+        {
+            return tag == "endif";
+        }
+
+        public override void AddCommand(BaseCommand command)
+        {
+            if (_lastBlockCommand != null)
+            {
+                _lastBlockCommand.AddCommand(command);
+                return;
+            }
+            base.AddCommand(command);
+        }
+    }
+
+    public class ElseIfBlockCommand : IfBlockCommand
+    {
+        public ElseIfBlockCommand() : base("elseif")
+        {
+        }
+
+        public override bool IsCommandEndTag(string tag)
+        {
+            return false;
+        }
+    }
+
+    public class ElseBlockCommand : IfBlockCommand
+    {
+        public ElseBlockCommand() : base("else")
+        {
+        }
+
+        public override bool IsCommandEndTag(string tag)
+        {
+            return false;
+        }
+    }
+
+    public class WhileBlockCommand : BaseBlockCommand
+    {
+        public WhileBlockCommand() : base("while")
+        {
+        }
+
+        public override bool IsCommandEndTag(string tag)
+        {
+            return tag == "endwhile";
+        }
+    }
+
+    public class ForBlockCommand : BaseBlockCommand
+    {
+        public ForBlockCommand() : base("for")
+        {
+        }
+
+        public override bool IsCommandEndTag(string tag)
+        {
+            return tag == "endfor";
+        }
     }
 }
