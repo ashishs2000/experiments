@@ -402,6 +402,21 @@
         <add table="dbo.CustomFieldAns_Archive" />
         <add table="dbo.CustomFieldOptionAns_Archive" />
         <add table="dbo.sysdtslog90" />
+
+        <!-- custom ignore scripts -->
+        <add table="dbo.sysdiagrams" />
+        <add table="dbo.JS_SuppAnswers" />
+        <add table="dbo.JS_SuppSelectAnswers" />
+        <add table="documents.documents" />
+        <add table="documents.applicationdocuments" />
+        <add table="DOCUMENTS.mergeHistory" />
+        <add table="dbo.emailNotificationAttachments" />
+        <add table="dbo.SnapshotEligibleListCandidatesMat" />
+        <add table="dbo.snapshoteligiblelist" />
+        <add table="dbo.notes" />
+        <add table="dbo.js_tempsuppanswers" />
+        <add table="dbo.js_tempsuppselectanswers" />
+
       </mappings>
       <mappings maptype="lookup">
         <add table="configuration.ActionItems" />
@@ -663,8 +678,8 @@
         <add table="dbo.xTrainings_TrainingCategories" />
         <add table="dbo.xUsers_Roles" />
         <add table="dbo.xUsers_SecurityProfile" />
-        <add table="dbo.StateDef" />
-        <add table="dbo.TimeZoneDef" />
+        <add table="dbo.States" />
+        <add table="dbo.TimeZone" />
       </mappings>
       <mappings maptype="relation">
         <add table="dbo.DepartmentProxy" column="DepartmentId" />
