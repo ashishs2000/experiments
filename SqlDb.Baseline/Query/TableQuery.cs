@@ -87,6 +87,15 @@ namespace SqlDb.Baseline.Query
             return AllObjects.ContainsKey(tableName.ToLower());
         }
 
+        public bool IsView(string objectName)
+        {
+            objectName = objectName.ToLower();
+            if (!AllObjects.ContainsKey(objectName))
+                return false;
+
+            return AllObjects[objectName].DbObjectType == DbObjectType.View;
+        }
+
         public DbTable GetTable(string tableName)
         {
             tableName = tableName.ToLower();

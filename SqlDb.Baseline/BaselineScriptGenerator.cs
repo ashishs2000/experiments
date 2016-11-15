@@ -169,7 +169,8 @@ namespace SqlDb.Baseline
 
         private bool ShouldSkipTable(string tablename)
         {
-            if (_dbSettings.SkipTables.Any(p => Regex.IsMatch(tablename, p, RegexOptions.IgnoreCase)))
+            if (_dbSettings.SkipTables.Any(p => Regex.IsMatch(tablename, p, RegexOptions.IgnoreCase))
+                || _databaseParser.Tables.IsView(tablename))
             {
                 _tableSkipped.Add(tablename);
                 return true;
