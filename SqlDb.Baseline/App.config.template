@@ -186,7 +186,7 @@
       </mappings>
     </database>
     <!--gj_mainsite configuration-->
-    <database name="gj_mainsite1" output="gj_mainsite" target="gj_mainsite1_baseline" skip="false" custom="Sample-Custom-Script.xml">
+    <database name="gj_mainsite1" output="gj_mainsite" target="gj_mainsite1_baseline" skip="false" custom="Insight-Custom-Script.xml">
       <mappings maptype="ignore">
         <add table="Migrations.*" />
         <add table="Hangfire.*" />
