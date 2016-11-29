@@ -31,13 +31,13 @@ namespace SqlDb.Baseline
         public void Generate()
         {
             CustomScripts customScripts = null;
+            ScriptWriter.WriteLine(_command.Template.Before(_dbSettings.TargetDatabase));
+
             if (!_command.ShouldSkipCustomScripts)
             {
                 customScripts = CustomScripts.GetCustomScript(_dbSettings);
                 AppendCustomScripts(customScripts.BeforeScripts);
             }
-            
-            ScriptWriter.WriteLine(_command.Template.Before(_dbSettings.TargetDatabase));
 
             if (_command.ShouldMigrateLookupTable)
                 AppendLookupTableMigration();
