@@ -16,7 +16,7 @@ namespace SqlDb.Baseline
         private readonly List<DbTable> _missing = new List<DbTable>();
         private readonly List<string> _tableCovered = new List<string>();
         private readonly List<string> _tableSkipped = new List<string>();
-        private int _counter = 0;
+        private int _counter;
         private int NextCounter => _counter = _counter + 1;
 
         private FileWriter ScriptWriter => _dbSettings.ScriptLogger;
@@ -30,12 +30,11 @@ namespace SqlDb.Baseline
 
         public void Generate()
         {
-            var customScripts = new List<CustomScript>();
+            CustomScripts customScripts = null;
             if (!_command.ShouldSkipCustomScripts)
             {
                 customScripts = CustomScripts.GetCustomScript(_dbSettings);
-                foreach (var customScript in customScripts)
-                    _tableCovered.Add(customScript.Table);
+                AppendCustomScripts(customScripts.BeforeScripts);
             }
             
             ScriptWriter.WriteLine(_command.Template.Before(_dbSettings.TargetDatabase));
@@ -47,7 +46,7 @@ namespace SqlDb.Baseline
                 CreateInsertStatementWithTree();
 
             if (!_command.ShouldSkipCustomScripts)
-                AppendCustomScripts(customScripts);
+                AppendCustomScripts(customScripts.AfterScripts);
 
             LogMissingFile();
             LogSkippedTables();
@@ -146,8 +145,11 @@ namespace SqlDb.Baseline
             }
         }
 
-        private void AppendCustomScripts(IEnumerable<CustomScript> scripts)
+        private void AppendCustomScripts(IList<CustomScript> scripts)
         {
+            if(!scripts.Any())
+                return;
+
             ScriptWriter.AddHeader("Custom Table Migrations").LogInfo();
 
             foreach (var script in scripts)
@@ -158,7 +160,6 @@ namespace SqlDb.Baseline
 
                 var statement = _command.InjectQuery(NextCounter, table, script.Value);
                 ScriptWriter.WriteLine(statement);
-                _tableCovered.Add(table.FullName);
             }
         }
 

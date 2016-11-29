@@ -11,7 +11,7 @@ namespace SqlDb.Baseline.QueryCommand
         public sealed override SqlTemplate Template { get; set; }
 
         public InsertQueryCommand(IApplicationSetting appSettings, DatabaseElementConfiguration dbConfiguration)
-            : base(appSettings)
+            : base()
         {
             _appSettings = appSettings;
             _dbSettings = dbConfiguration;

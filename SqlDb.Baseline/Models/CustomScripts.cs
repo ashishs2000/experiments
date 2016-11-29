@@ -12,34 +12,48 @@ namespace SqlDb.Baseline.Models
         [XmlElement("script")]
         public CustomScript[] Scripts { get; set; }
 
-        public static List<CustomScript> GetCustomScript(IDatabaseConfig config)
+        public IList<CustomScript> BeforeScripts { get; } = new List<CustomScript>();
+        public IList<CustomScript> AfterScripts { get; } = new List<CustomScript>();
+
+        public static CustomScripts GetCustomScript(IDatabaseConfig config)
         {
+            CustomScripts result = new CustomScripts();
             if (string.IsNullOrEmpty(config.CustomScriptFile))
-                return new List<CustomScript>();
+                return result;
 
             if (!File.Exists(config.CustomScriptFile))
             {
                 ConsoleLogger.LogError($"No custom script file found '{config.CustomScriptFile}' for database '{config.SourceDatabase}'");
-                return new List<CustomScript>();
+                return result;
             }
 
             var serializer = new XmlSerializer(typeof(CustomScripts));
-            var data = (CustomScripts) serializer.Deserialize(new FileStream(config.CustomScriptFile, FileMode.Open));
+            result = (CustomScripts) serializer.Deserialize(new FileStream(config.CustomScriptFile, FileMode.Open));
 
             var scripts = new List<CustomScript>();
-            foreach (var script in data.Scripts)
+            foreach (var script in result.Scripts)
             {
                 script.Value = script.Value.Replace("@target", config.TargetDatabase).Replace("@source", config.SourceDatabase);
+                switch (script.Sequence)
+                {
+                    case AppendSequence.Before:
+                        result.BeforeScripts.Add(script);
+                        break;
+                    default:
+                        result.AfterScripts.Add(script);
+                        break;
+                }
                 scripts.Add(script);
             }
 
-            return scripts;
+            return result;
         }
     }
 
     public class CustomScript
     {
         private string _table;
+        private const AppendSequence DefaultSequence = AppendSequence.After;
 
         [XmlAttribute("table")]
         public string Table
@@ -48,7 +62,19 @@ namespace SqlDb.Baseline.Models
             set { _table = value.ToLower(); }
         }
 
+        [XmlAttribute("append")]
+        public string Append { get; set; } = DefaultSequence.ToString();
+        
         [XmlText]
         public string Value { get; set; }
+
+        [XmlIgnore]
+        public AppendSequence Sequence => Append.ToEnum(DefaultSequence);
+    }
+
+    public enum AppendSequence
+    {
+        Before,
+        After
     }
 }

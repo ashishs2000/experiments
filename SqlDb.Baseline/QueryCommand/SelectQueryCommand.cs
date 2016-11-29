@@ -10,7 +10,6 @@ namespace SqlDb.Baseline.QueryCommand
         public override bool ShouldSkipCustomScripts { get; } = true;
 
         public SelectQueryCommand(IApplicationSetting appSettings)
-            : base(appSettings)
         {
             Template = appSettings.SelectTemplate;
         }

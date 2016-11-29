@@ -94,10 +94,16 @@
     <Compile Include="Models\DbTable.cs" />
     <Compile Include="Models\DbTableRelationship.cs" />
     <Compile Include="Models\Tree.cs" />
+    <Content Include="ManualScripts\Coredata-Custom-Script.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ManualScripts\Perform-Custom-Script.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="README.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Insight-Custom-Script.xml">
+    <Content Include="ManualScripts\Insight-Custom-Script.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="SqlTemplates\InsertOutputTemplate.txt">
@@ -105,6 +111,7 @@
     </Content>
     <Content Include="QueryScript.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
     </Content>
     <None Include="SqlTemplates\SelectOutputTemplate.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

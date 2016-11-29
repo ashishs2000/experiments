@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<scripts>
+  <script table="ngv.CustomLabels" append="before">
+    <![CDATA[        
+        INSERT INTO @target.ngv.CustomLabels (CustomLabelID, EmployerID, LabelKey, Singular, Plural, LabelLevel, IsSingularOnly)
+        SELECT CustomLabelID, EmployerID, LabelKey, Singular, Plural, LabelLevel, IsSingularOnly
+        FROM [@source].[ngv].[CustomLabels]
+        WHERE EmployerID IS NULL    
+    ]]>
+  </script>  
+  <script table="dbo.Brands" append="after">
+    <![CDATA[        
+        UPDATE dbo.Brands
+        Set url = 'http://performance.local.neogov.net/'
+        where BrandID = 10
+
+        UPDATE dbo.Brands
+        Set url = 'http://hrcloud.local.neogov.net/'
+        where BrandID = 20   
+    ]]>
+  </script>  
+  <script table="dbo.Users" append="after">
+    <![CDATA[        
+         UPDATE [coredata].[dbo].Users
+         SET [password] = 0x2886A5C1464D75909F230A3E88D4C513EE1ED18C1E5B2701D8265BCBAE5DD1AE4E691070D3A6A49112579A818489D051B7609081E965E59B42A71FD3C9754478, 
+         PasswordSalt = '10000.0FIL43TDVtCDhiqSbRdRecvioux+3CP3GUKTHQFrVMU=', 
+         isPendingActivation = 0,
+         lastPasswordChange = DATEADD(day,1,getdate())
+    ]]>
+  </script>
+</scripts>

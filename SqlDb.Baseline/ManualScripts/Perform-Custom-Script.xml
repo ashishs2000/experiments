@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<scripts>
+  <script table="dbo.SecurityProfiles" append="before">
+    <![CDATA[        
+        INSERT INTO @target.dbo.SecurityProfiles (ProfileID,ProfileName, RowLevelAccessTypeID,EmployerID,CreateDateTime,CreateDateTime,UpdatedByUserID,UpdateDateTime,DerivedFromProfileID,UseDefault)
+        SELECT ProfileID,ProfileName, RowLevelAccessTypeID,EmployerID,CreateDateTime,CreateDateTime,UpdatedByUserID,UpdateDateTime,DerivedFromProfileID,UseDefault
+        FROM [@source].[dbo].[SecurityProfiles]
+        WHERE EmployerID IS NULL        
+    ]]>
+  </script>  
+  <script table="dbo.ApplicationSettings" append="before">
+    <![CDATA[        
+        INSERT INTO @target.dbo.ApplicationSettings (ApplicationSettingID,EmployerID,Code,Setting,[Description],UpdateDateTime,AllowUserModification,ExpectedValue,UpdatedByUserID,CreatedByUserID,CreationDateTime,ValidationType,ValidationData,ValidationMin,ValidationMax,ValidationMaxMinValueType,ExtendedHelp,Unit,ControlType,ControlSupportData,SaveDataTreatment,DisplayOrder,AllowUserView,Value)
+        SELECT ApplicationSettingID,EmployerID,Code,Setting,[Description],UpdateDateTime,AllowUserModification,ExpectedValue,UpdatedByUserID,CreatedByUserID,CreationDateTime,ValidationType,ValidationData,ValidationMin,ValidationMax,ValidationMaxMinValueType,ExtendedHelp,Unit,ControlType,ControlSupportData,SaveDataTreatment,DisplayOrder,AllowUserView,Value
+        FROM [@source].[dbo].[ApplicationSettings]
+        WHERE EmployerID IS NULL     
+    ]]>
+  </script>
+  <script table="configuration.GridViews" append="before">
+    <![CDATA[        
+        INSERT INTO @target.configuration.GridViews (GridViewId,EmployerId,ParentId,Name,IsDefault,IsPublic,CreatedDateTime,CreatedByUserId,UpdatedDateTime,UpdatedByUserId,ObjectName,ViewConfig,DisplayOrder)        
+        SELECT GridViewId,EmployerId,ParentId,Name,IsDefault,IsPublic,CreatedDateTime,CreatedByUserId,UpdatedDateTime,UpdatedByUserId,ObjectName,ViewConfig,DisplayOrder
+        FROM [@source].[configuration].[GridViews]
+        WHERE SecurityObjectID IS NULL    
+    ]]>
+  </script>
+</scripts>

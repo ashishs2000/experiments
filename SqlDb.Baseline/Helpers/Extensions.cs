@@ -59,5 +59,11 @@ namespace SqlDb.Baseline.Helpers
         {
             return EnglishService.Singularize(word);
         }
+
+        public static T ToEnum<T>(this string value, T defaultValue = default(T)) where T : struct
+        {
+            T val;
+            return string.IsNullOrEmpty(value) ? defaultValue : Enum.TryParse(value,true, out val) ? val : defaultValue;
+        }
     }
 }
