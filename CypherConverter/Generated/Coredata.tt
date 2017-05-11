@@ -1,0 +1,100 @@
+﻿<#@ include file="EF.Reverse.POCO.Core.ttinclude" #>
+<#
+    // v2.13.0
+    // Please make changes to the settings below.
+    // All you have to do is save this file, and the output file(s) is/are generated. Compiling does not regenerate the file(s).
+
+    // Main settings **********************************************************************************************************************
+    // Namespace = ""; // Override the default namespace here
+
+	var DbClassName = "CoredataDb";
+	var TableClassName = "";
+
+    ConnectionStringName = "Coredata";   // Searches for this connection string in config files listed below
+    TargetFrameworkVersion = "4.51"; // Please set this to your .NET framework version, 4.0, 4.5, 4.51, etc.
+    ConfigFilenameSearchOrder = new[] { "app.config", "web.config", "app.config.transform", "web.config.transform" }; // Add more here if required. The config files are searched for in the local project first, then the whole solution second.
+    MakeClassesPartial = false;
+    GenerateSeparateFiles = false;
+    UseCamelCase = true;    // This will rename the tables & fields to use CamelCase. If false table & field names will be left alone.
+
+    // Pluralization **********************************************************************************************************************
+    // To turn off pluralization, use:
+    //      Inflector.PluralizationService = null;
+    // Default pluralization, use:
+    //      Inflector.PluralizationService = new EnglishPluralizationService();
+    // For Spanish pluralization:
+    //      1. Intall the "EF6.Contrib" Nuget Package.
+    //      2. Add the following to the top of this file and adjust path, and remove the space between the angle bracket and # at the beginning and end.
+    //         < #@ assembly name="your full path to \EntityFramework.Contrib.dll" # >
+    //      3. Change the line below to: Inflector.PluralizationService = new SpanishPluralizationService();
+    Inflector.PluralizationService = new EnglishPluralizationService(new[]
+    {
+        // Create custom ("Singular", "Plural") forms for one-off words as needed
+        new CustomPluralizationEntry("LiveQuiz", "LiveQuizzes"),
+        new CustomPluralizationEntry("Course", "Courses"),
+        new CustomPluralizationEntry("CustomerStatus", "CustomerStatus"), // Use same value to prevent pluralisation
+        new CustomPluralizationEntry("EmployeeStatus", "EmployeeStatus")
+    });
+
+    // Schema *****************************************************************************************************************************
+    // If there are multiple schemas, then the table name is prefixed with the schema, except for dbo.
+    // Ie. dbo.hello will be Hello.
+    //     abc.hello will be AbcHello.
+    // To only include a single schema, specify it below.
+    SchemaName = null;
+    PrependSchemaName = true;   // Control if the schema name is prepended to the table name
+
+
+    // Filtering **************************************************************************************************************************
+    // Use the following table/view name regex filters to include or exclude tables/views
+    // Exclude filters are checked first and tables matching filters are removed.
+    //  * If left null, none are excluded.
+    //  * If not null, any tables matching the regex are excluded.
+    // Include filters are checked second.
+    //  * If left null, all are included.
+    //  * If not null, only the tables matching the regex are included.
+    //  Example:    TableFilterExclude = new Regex(".*auto.*");
+    //              TableFilterInclude = new Regex("(.*_FR_.*)|(data_.*)");
+    //              TableFilterInclude = new Regex("^table_name1$|^table_name2$|etc");
+    //              ColumnFilterExclude = new Regex("^FK_.*$");
+    TableFilterExclude = new Regex("^EvaluationWithGroupSteps_Backup|^AutomaticEvaluation_Deleted");
+    TableFilterInclude = null;
+    ColumnFilterExclude = null;
+
+    // Table renaming *********************************************************************************************************************
+    // Use the following function to rename tables such as tblOrders to Orders, Shipments_AB to Shipments, etc.
+    // Example:
+    /*TableRename = (name, schema) =>
+    {
+        if (name.StartsWith("tbl"))
+            name = name.Remove(0, 3);
+        return name.Replace("_AB", "");
+    };*/
+    TableRename = (name, schema) => name;   // Do nothing by default
+    
+    // Column modification*****************************************************************************************************************
+    // Use the following function if you need to apply additional modifications to a column
+    // eg. normalise names etc.
+    // Example
+    UpdateColumn = (Column column, Table table) => 
+    {
+        if (column.PropertyNameHumanCase == "TableName")
+            column.PropertyNameHumanCase = "TableNameColumn";
+        return column;
+    };
+    //UpdateColumn = (Column column, Table table) => column; // Do nothing by default
+
+    // That's it, nothing else to configure ***********************************************************************************************
+    
+    
+    
+    // Read schemas
+    var factory = GetDbProviderFactory();
+    var tables = LoadTables(factory);
+    
+    // Generate output
+    if (tables.Count > 0)
+    {
+#>
+<#@ include file="EF.Reverse.POCO.ttinclude" #>
+<# } #>

@@ -1,0 +1,56 @@
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.Security.Cryptography.X509Certificates" #>
+// ReSharper disable InconsistentNaming
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable PartialMethodWithSinglePart
+
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Data.Entity.ModelConfiguration.Configuration;
+
+namespace <#= Namespace #>
+{
+	public static class <#= DbClassName #>
+	{
+	<#
+	foreach(Table tbl in tables.OrderBy(x => x.NameHumanCase))
+	{
+	#>
+	public <# if(MakeClassesPartial) { #>partial <# } #>class <#=tbl.NameHumanCase + TableClassName#>
+		{
+	 <# if (!string.IsNullOrEmpty(tbl.Schema)) { #>
+		public static string SchemaName
+			{
+				get { return "<#=tbl.Schema#>"; }
+			}
+	 <# } #>		
+
+			public static string TableName
+			{
+				get { return "<#=tbl.Name#>"; }
+			}
+
+	<#
+	foreach(Column col in tbl.Columns.Where(x => !x.Hidden).OrderBy(x => x.Ordinal))
+	{
+	#>
+		public static string <#= col.PropertyNameHumanCase #>()
+			{
+				return "<#= col.Name #>";
+			}
+
+			public static <#= col.PropertyConfigurationType #> <#= col.PropertyNameHumanCase #>(<#= col.PropertyConfigurationType #> config)
+			{
+				return config<#= col.GeneratedConfig #>
+			}
+
+			public static PropertyMappingConfiguration <#= col.PropertyNameHumanCase #>(PropertyMappingConfiguration config)
+			{
+				return config.HasColumnName("<#= col.Name #>");
+			}
+
+	<# } #>	}
+
+	<# } #>
+}
+}
+

@@ -41,6 +41,10 @@
     <Reference Include="Common.Logging.Core">
       <HintPath>..\packages\Common.Logging.Core.2.2.0\lib\net40\Common.Logging.Core.dll</HintPath>
     </Reference>
+    <Reference Include="CsvHelper, Version=2.0.0.0, Culture=neutral, PublicKeyToken=8c4959082be5c823, processorArchitecture=MSIL">
+      <HintPath>..\packages\CsvHelper.2.16.3.0\lib\net45\CsvHelper.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Dapper">
       <HintPath>..\packages\Dapper.1.13\lib\net45\Dapper.dll</HintPath>
     </Reference>
@@ -88,25 +92,25 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CustomProvider\JoinExpression.cs" />
     <Compile Include="DynamicDemo\DynamicClassFactory.cs" />
     <Compile Include="DynamicDemo\DynamicDbContext.cs" />
     <Compile Include="DynamicDemo\DynamicEntity.cs" />
     <Compile Include="DynamicDemo\DynamicMain.cs" />
     <Compile Include="DynamicDemo\DynamicTypeBuilder.cs" />
     <Compile Include="DynamicDemo\StructuralTypeConfigurationWrapper.cs" />
+    <Compile Include="DynamicExpression\Main.cs" />
     <Compile Include="EntityFrameworkPivot\DatabaseQuery.cs" />
     <Compile Include="EntityFrameworkPivot\Entity.cs" />
     <Compile Include="EntityFrameworkPivot\EntityMapping.cs" />
     <Compile Include="EntityFrameworkPivot\PivotTable.cs" />
     <Compile Include="EntityFrameworkPivot\Randomizer.cs" />
+    <Compile Include="FileImportDemo.cs" />
     <Compile Include="FolderComparer.cs" />
     <Compile Include="Import.cs" />
     <Compile Include="LanguageParser.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QuickSort.cs" />
-    <Compile Include="ReadProvider\Specification.cs" />
     <Compile Include="StrictExtensionDemo\ExtensionField.cs" />
   </ItemGroup>
   <ItemGroup>

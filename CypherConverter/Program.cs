@@ -1,13 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Data;
+using System.Data.Common;
 using System.IO;
+using System.Linq.Expressions;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
+using CypherConverter.Generated;
+using CypherConverter.ImportTool;
 using Neogov.Common;
 
 namespace CypherConverter
 {
+    
     class Program
     {
         private const string PLAIN_IDS_FILE_NAME = "PlainIDs.txt";
@@ -15,6 +22,10 @@ namespace CypherConverter
 
         static void Main(string[] args)
         {
+            var test = new Tester();
+            test.Start();
+
+            return;
             if (File.Exists(PLAIN_IDS_FILE_NAME))
             {
                 var encryptedIds = new StringBuilder();
