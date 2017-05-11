@@ -15,101 +15,66 @@ namespace CypherConverter.ImportTool
     public class Tester
     {
         private DummyGenerator _gen;
-        private readonly CoreDataDbContext _context;//= new CoreDataDbContext();
-       
         public void Start()
         {
             try
             {
                 _gen = new DummyGenerator(12, 1040);
-                //INSERT DEPARTMENT
-                var departments = _gen.GetDepartment(10);
-                var dt = new DepartmentDataTable();
-
-
-                //DataTable dataTable = null;
-                //using (var sourceConnection = new SqlConnection(ConfigurationManager.ConnectionStrings["Coredata"].ConnectionString))
-                //{
-                //    sourceConnection.Open();
-
-                //    dataTable = new DataTable(dt.DataTable.TableName);
-                //    var cmd = $"SELECT TOP 1 * FROM {dt.DataTable.TableName} WHERE 1=0";
-
-                //    var da = new SqlDataAdapter(cmd, sourceConnection);
-                //    da.Fill(dataTable);
-                //}
-
+                var departments = _gen.GetDepartment(50000);
                 
-                foreach (var stagedDepartment in departments)
-                {
-                    dt.AddRow(stagedDepartment);
-                }
-
-                //var hash = new DataColumn("DepartmentHash", typeof(string));
-                //hash.ReadOnly = true;
-                //dt.DataTable.Columns.Add(hash);
-
-                using (var sourceConnection = new SqlConnection(ConfigurationManager.ConnectionStrings["Coredata"].ConnectionString))
-                {
-                    sourceConnection.Open();
-                    using (SqlBulkCopy bulkCopy = new SqlBulkCopy(sourceConnection))
-                    {
-                        bulkCopy.DestinationTableName = dt.DataTable.TableName;
-
-                        foreach (DataColumn column in dt.DataTable.Columns)
-                        {
-                            bulkCopy.ColumnMappings.Add(column.ColumnName, column.ColumnName);
-                        }
-                        try
-                        {
-                            // Write from the source to the destination.
-                            bulkCopy.WriteToServer(dt.DataTable);
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine(ex.Message);
-                        }
-                    }
-                }
-
-                    var lastTransactionId = _context.Set<StagedDepartment>().Any() ? _context.Set<StagedDepartment>().Max(p => p.TransactionId) : 0;
-                var nextTransactionId = lastTransactionId + 10;
-                _gen = new DummyGenerator(nextTransactionId, 1040);
-
-
-                _context.Set<StagedDepartment>().AddRange(departments);
-                _context.SaveChanges();
-
-                //INSERT CLASS  SPECIFICATION
-                var classSpecs = _gen.GetClassSpec(10);
-                _context.Set<StagedClassSpec>().AddRange(classSpecs);
-                _context.SaveChanges();
-                var csMin = classSpecs.Min(q => q.Id);
-                var csMax = classSpecs.Max(q => q.Id);
-
-                //INSERT DIVISION
-                var depMin = departments.Min(q => q.Id);
-                var depMax = departments.Max(q => q.Id);
-                var divisions = _gen.GetDivision(Convert.ToInt32(depMin), Convert.ToInt32(depMax), 10);
-                _context.Set<StagedDivision>().AddRange(divisions);
-                _context.SaveChanges();
-                var divMin = divisions.Min(q => q.Id);
-                var divMax = divisions.Max(q => q.Id);
-
-                //INSERT POSITION
-                var positions = _gen.GetPositions(depMin, depMax, divMin, divMax, csMin, csMax, 10);
-                _context.Set<StagedPosition>().AddRange(positions);
-                _context.SaveChanges();
+                var context = new DataTableDbContext("Coredata");
+                var copier = new EntityBulkCopier<StagedDepartment>(context);
+                copier.WriteToServer(departments);
 
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
             }
-            finally
+        }
+
+        public void UsingEntityFramework()
+        {
+            try
             {
-                _context.Dispose();
+                using (var context = new CoreDataDbContext())
+                {
+                    var lastTransactionId = context.Set<StagedDepartment>().Any() ? context.Set<StagedDepartment>().Max(p => p.TransactionId) : 0;
+                    var nextTransactionId = lastTransactionId + 10;
+                    _gen = new DummyGenerator(nextTransactionId, 1040);
+
+                    //INSERT DEPARTMENT
+                    var departments = _gen.GetDepartment(10);
+                    context.Set<StagedDepartment>().AddRange(departments);
+                    context.SaveChanges();
+
+                    //INSERT CLASS  SPECIFICATION
+                    var classSpecs = _gen.GetClassSpec(10);
+                    context.Set<StagedClassSpec>().AddRange(classSpecs);
+                    context.SaveChanges();
+                    var csMin = classSpecs.Min(q => q.Id);
+                    var csMax = classSpecs.Max(q => q.Id);
+
+                    //INSERT DIVISION
+                    var depMin = departments.Min(q => q.Id);
+                    var depMax = departments.Max(q => q.Id);
+                    var divisions = _gen.GetDivision(Convert.ToInt32(depMin), Convert.ToInt32(depMax), 10);
+                    context.Set<StagedDivision>().AddRange(divisions);
+                    context.SaveChanges();
+                    var divMin = divisions.Min(q => q.Id);
+                    var divMax = divisions.Max(q => q.Id);
+
+                    //INSERT POSITION
+                    var positions = _gen.GetPositions(depMin, depMax, divMin, divMax, csMin, csMax, 10);
+                    context.Set<StagedPosition>().AddRange(positions);
+                    context.SaveChanges();
+                }
             }
+            catch (Exception)
+            {
+                throw;
+            }
+            
         }
     }
 
